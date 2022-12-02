@@ -2,13 +2,41 @@ pub mod calorie_counting;
 pub mod rock_paper_scissors;
 pub mod rucksack_reorganization;
 
-use std::{error::Error, fs, str::FromStr};
+use std::{
+    error::Error,
+    fmt::{self, Debug, Display, Formatter},
+    fs,
+};
+
+use crate::match_args::{MatchArgs, MatchArgsError};
 
 use self::{
-    calorie_counting::CalorieCountingArgs,
-    rock_paper_scissors::{RockPaperScissorsArgType, RockPaperScissorsArgs},
+    calorie_counting::CalorieCountingArgs, rock_paper_scissors::RockPaperScissorsArgs,
     rucksack_reorganization::RucksackReorganizationArgs,
 };
+
+pub enum ParsePuzzleTypeError {
+    InvalidValue(String),
+}
+
+impl Display for ParsePuzzleTypeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let Self::InvalidValue(value) = self;
+        write!(
+            f,
+            "Invalid option '{}' for puzzle 'rock_paper_scissors'",
+            value
+        )
+    }
+}
+
+impl Debug for ParsePuzzleTypeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        (self as &dyn Display).fmt(f)
+    }
+}
+
+impl Error for ParsePuzzleTypeError {}
 
 pub enum PuzzleInput {
     CalorieCounting(CalorieCountingArgs),
@@ -16,11 +44,65 @@ pub enum PuzzleInput {
     RucksackReorganization(RucksackReorganizationArgs),
 }
 
+impl MatchArgs for PuzzleInput {
+    type Err = MatchArgsError<Box<dyn Error>>;
+
+    fn match_args(args: &mut impl Iterator<Item = String>) -> Result<Self, Self::Err> {
+        let puzzle = <String as MatchArgs>::match_args(args).map_err(|err| match err {
+            MatchArgsError::ParseError(err) => {
+                MatchArgsError::ParseError(Box::new(err) as Box<dyn Error>)
+            }
+            MatchArgsError::EndOfArgsError => MatchArgsError::EndOfArgsError,
+        })?;
+
+        match puzzle.as_str() {
+            "calorie_counting" => {
+                let args =
+                    <CalorieCountingArgs as MatchArgs>::match_args(args).map_err(
+                        |err| match err {
+                            MatchArgsError::ParseError(err) => {
+                                MatchArgsError::ParseError(Box::new(err) as Box<dyn Error>)
+                            }
+                            MatchArgsError::EndOfArgsError => MatchArgsError::EndOfArgsError,
+                        },
+                    )?;
+                Ok(Self::CalorieCounting(args))
+            }
+            "rock_paper_scissors" => {
+                let args = <RockPaperScissorsArgs as MatchArgs>::match_args(args).map_err(
+                    |err| match err {
+                        MatchArgsError::ParseError(err) => {
+                            MatchArgsError::ParseError(Box::new(err) as Box<dyn Error>)
+                        }
+                        MatchArgsError::EndOfArgsError => MatchArgsError::EndOfArgsError,
+                    },
+                )?;
+                Ok(Self::RockPaperScissors(args))
+            }
+            "rucksack_reorganization" => {
+                let args =
+                    <RucksackReorganizationArgs as MatchArgs>::match_args(args).map_err(|err| {
+                        match err {
+                            MatchArgsError::ParseError(err) => {
+                                MatchArgsError::ParseError(Box::new(err) as Box<dyn Error>)
+                            }
+                            MatchArgsError::EndOfArgsError => MatchArgsError::EndOfArgsError,
+                        }
+                    })?;
+                Ok(Self::RucksackReorganization(args))
+            }
+            _ => Err(MatchArgsError::ParseError(Box::new(
+                ParsePuzzleTypeError::InvalidValue(puzzle.clone()),
+            ))),
+        }
+    }
+}
+
 impl PuzzleInput {
-    pub fn build(args: &mut impl Iterator<Item = String>) -> Result<PuzzleInput, &'static str> {
+    pub fn build(args: &mut impl Iterator<Item = String>) -> Result<PuzzleInput, Box<dyn Error>> {
         args.next();
-        let puzzle = match_argument::<String>(args)?;
-        match_puzzle(&puzzle, args, "Unrecognized value found for 'puzzle'.")
+        <PuzzleInput as MatchArgs>::match_args(args)
+            .map_err(|err| format!("Error while parsing: {}", err).into())
     }
 
     pub fn run_solution(&self) -> Result<(), Box<dyn Error>> {
@@ -43,47 +125,5 @@ impl PuzzleInput {
             Self::RockPaperScissors(_) => "rock_paper_scissors",
             Self::RucksackReorganization(_) => "rucksack_reorganization",
         }
-    }
-}
-
-fn match_argument<'a, T>(args: &mut impl Iterator<Item = String>) -> Result<T, &'a str>
-where
-    T: FromStr,
-{
-    match args.next() {
-        Some(arg) => arg.parse::<T>().map_err(|_err| "Could not parse argument."),
-        None => Err("Missing argument."),
-    }
-}
-
-fn match_puzzle<'a>(
-    puzzle: &String,
-    args: &mut impl Iterator<Item = String>,
-    error_message: &'a str,
-) -> Result<PuzzleInput, &'a str> {
-    let puzzle = puzzle.to_lowercase();
-    if puzzle == "calorie_counting" {
-        let count = match_argument::<usize>(args)?;
-        Ok(PuzzleInput::CalorieCounting(CalorieCountingArgs { count }))
-    } else if puzzle == "rock_paper_scissors" {
-        let arg_type = match match_argument::<String>(args)?.as_str() {
-            "regular" => Ok(RockPaperScissorsArgType::Regular),
-            "reverse" => Ok(RockPaperScissorsArgType::Reverse),
-            _ => Err(error_message),
-        }?;
-
-        Ok(PuzzleInput::RockPaperScissors(RockPaperScissorsArgs {
-            arg_type,
-        }))
-    } else if puzzle == "rucksack_reorganization" {
-        let arg_type = match match_argument::<String>(args)?.as_str() {
-            "compartments" => Ok(RucksackReorganizationArgs::Compartments),
-            "rucksack_groups" => Ok(RucksackReorganizationArgs::RucksackGroups),
-            _ => Err(error_message),
-        }?;
-
-        Ok(PuzzleInput::RucksackReorganization(arg_type))
-    } else {
-        Err(error_message)
     }
 }

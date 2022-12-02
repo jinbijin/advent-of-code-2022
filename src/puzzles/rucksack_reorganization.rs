@@ -1,10 +1,50 @@
-use std::{error::Error, fmt::Display, str::FromStr, vec::IntoIter};
+use std::{
+    error::Error,
+    fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
+    vec::IntoIter,
+};
 
 use crate::parse;
+
+pub enum ParseRucksackReorganizationArgsError {
+    InvalidValue(String),
+}
+
+impl Display for ParseRucksackReorganizationArgsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self::InvalidValue(value) = self;
+        write!(
+            f,
+            "Invalid option '{}' for puzzle 'rucksack_reorganization'",
+            value
+        )
+    }
+}
+
+impl Debug for ParseRucksackReorganizationArgsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        (self as &dyn Display).fmt(f)
+    }
+}
+
+impl Error for ParseRucksackReorganizationArgsError {}
 
 pub enum RucksackReorganizationArgs {
     Compartments,
     RucksackGroups,
+}
+
+impl FromStr for RucksackReorganizationArgs {
+    type Err = ParseRucksackReorganizationArgsError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "compartments" => Ok(Self::Compartments),
+            "rucksack_groups" => Ok(Self::RucksackGroups),
+            _ => Err(Self::Err::InvalidValue(s.to_string())),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]

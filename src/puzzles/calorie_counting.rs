@@ -1,8 +1,17 @@
 use crate::parse;
-use std::{error::Error, fmt::Display, iter::Sum};
+use std::{error::Error, fmt::Display, iter::Sum, num::ParseIntError, str::FromStr};
 
 pub struct CalorieCountingArgs {
     pub count: usize,
+}
+
+impl FromStr for CalorieCountingArgs {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let count = s.parse::<usize>()?;
+        Ok(Self { count })
+    }
 }
 
 struct SplitByNoneIterator<'a, T, U>

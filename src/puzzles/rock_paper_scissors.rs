@@ -5,15 +5,51 @@ mod mapping;
 use crate::parse;
 use common::{RpsMatchWithResult, RpsResult, RpsType, Scorable};
 use error::RpsMatchParseError;
-use std::{error::Error, fmt::Display, iter::Sum, str::FromStr};
+use std::{
+    error::Error,
+    fmt::{self, Debug, Display, Formatter},
+    iter::Sum,
+    str::FromStr,
+};
 
-pub enum RockPaperScissorsArgType {
+pub enum ParseRockPaperScissorsArgsError {
+    InvalidValue(String),
+}
+
+impl Display for ParseRockPaperScissorsArgsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Self::InvalidValue(value) = self;
+        write!(
+            f,
+            "Invalid option '{}' for puzzle 'rock_paper_scissors'",
+            value
+        )
+    }
+}
+
+impl Debug for ParseRockPaperScissorsArgsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        (self as &dyn Display).fmt(f)
+    }
+}
+
+impl Error for ParseRockPaperScissorsArgsError {}
+
+pub enum RockPaperScissorsArgs {
     Regular,
     Reverse,
 }
 
-pub struct RockPaperScissorsArgs {
-    pub arg_type: RockPaperScissorsArgType,
+impl FromStr for RockPaperScissorsArgs {
+    type Err = ParseRockPaperScissorsArgsError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "regular" => Ok(Self::Regular),
+            "reverse" => Ok(Self::Reverse),
+            _ => Err(Self::Err::InvalidValue(s.to_string())),
+        }
+    }
 }
 
 pub struct RpsMatch {
@@ -131,11 +167,11 @@ pub fn main(
     file_contents: String,
     args: &RockPaperScissorsArgs,
 ) -> Result<Box<dyn Display>, Box<dyn Error>> {
-    let score = match args.arg_type {
-        RockPaperScissorsArgType::Regular => get_tournament_score(
+    let score = match args {
+        RockPaperScissorsArgs::Regular => get_tournament_score(
             &mut parse::parse_as_newline_separated::<RpsMatch>(file_contents)?.into_iter(),
         ),
-        RockPaperScissorsArgType::Reverse => get_tournament_score(
+        RockPaperScissorsArgs::Reverse => get_tournament_score(
             &mut parse::parse_as_newline_separated::<RpsDesiredResult>(file_contents)?.into_iter(),
         ),
     };
