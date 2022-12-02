@@ -1,9 +1,12 @@
 pub mod calorie_counting;
+pub mod rock_paper_scissors;
 
 use std::str::FromStr;
 
 pub enum PuzzleInput {
     CalorieCounting(String, usize),
+    RockPaperScissors(String),
+    RockPaperScissorsReverse(String),
 }
 
 impl PuzzleInput {
@@ -33,7 +36,14 @@ fn match_puzzle<'a>(
     if puzzle == "calorie_counting" {
         let count = match_argument::<usize>(args)?;
         let file_name = match_argument::<String>(args)?;
-        return Ok(PuzzleInput::CalorieCounting(file_name, count));
+        Ok(PuzzleInput::CalorieCounting(file_name, count))
+    } else if puzzle == "rock_paper_scissors" {
+        let file_name = match_argument::<String>(args)?;
+        Ok(PuzzleInput::RockPaperScissors(file_name))
+    } else if puzzle == "rock_paper_scissors_reverse" {
+        let file_name = match_argument::<String>(args)?;
+        Ok(PuzzleInput::RockPaperScissorsReverse(file_name))
+    } else {
+        Err(error_message)
     }
-    Err(error_message)
 }
