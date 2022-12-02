@@ -2,9 +2,19 @@ pub mod common;
 mod error;
 mod mapping;
 
+use crate::parse;
 use common::{RpsMatchWithResult, RpsResult, RpsType, Scorable};
 use error::RpsMatchParseError;
-use std::{iter::Sum, str::FromStr};
+use std::{error::Error, fmt::Display, iter::Sum, str::FromStr};
+
+pub enum RockPaperScissorsArgType {
+    Regular,
+    Reverse,
+}
+
+pub struct RockPaperScissorsArgs {
+    pub arg_type: RockPaperScissorsArgType,
+}
 
 pub struct RpsMatch {
     pub opponent_choice: RpsType,
@@ -115,6 +125,21 @@ where
         .into_iter()
         .map(|rps_match| rps_match.score())
         .sum::<T>()
+}
+
+pub fn main(
+    file_contents: String,
+    args: &RockPaperScissorsArgs,
+) -> Result<Box<dyn Display>, Box<dyn Error>> {
+    let score = match args.arg_type {
+        RockPaperScissorsArgType::Regular => get_tournament_score(
+            &mut parse::parse_as_newline_separated::<RpsMatch>(file_contents)?.into_iter(),
+        ),
+        RockPaperScissorsArgType::Reverse => get_tournament_score(
+            &mut parse::parse_as_newline_separated::<RpsDesiredResult>(file_contents)?.into_iter(),
+        ),
+    };
+    Ok(Box::new(score))
 }
 
 #[cfg(test)]

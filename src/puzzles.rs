@@ -1,12 +1,16 @@
 pub mod calorie_counting;
 pub mod rock_paper_scissors;
 
-use std::str::FromStr;
+use std::{error::Error, fs, str::FromStr};
+
+use self::{
+    calorie_counting::CalorieCountingArgs,
+    rock_paper_scissors::{RockPaperScissorsArgType, RockPaperScissorsArgs},
+};
 
 pub enum PuzzleInput {
-    CalorieCounting(String, usize),
-    RockPaperScissors(String),
-    RockPaperScissorsReverse(String),
+    CalorieCounting(CalorieCountingArgs),
+    RockPaperScissors(RockPaperScissorsArgs),
 }
 
 impl PuzzleInput {
@@ -14,6 +18,24 @@ impl PuzzleInput {
         args.next();
         let puzzle = match_argument::<String>(args)?;
         match_puzzle(&puzzle, args, "Unrecognized value found for 'puzzle'.")
+    }
+
+    pub fn run_solution(&self) -> Result<(), Box<dyn Error>> {
+        let file_name = format!("input/{}.txt", self.file_name());
+        let file_contents = fs::read_to_string(file_name)?;
+        let output = match self {
+            Self::CalorieCounting(args) => calorie_counting::main(file_contents, args),
+            Self::RockPaperScissors(args) => rock_paper_scissors::main(file_contents, args),
+        }?;
+        println!("The answer is: {}", output);
+        Ok(())
+    }
+
+    pub fn file_name(&self) -> &str {
+        match self {
+            Self::CalorieCounting(_) => "calorie_counting",
+            Self::RockPaperScissors(_) => "rock_paper_scissors",
+        }
     }
 }
 
@@ -35,14 +57,17 @@ fn match_puzzle<'a>(
     let puzzle = puzzle.to_lowercase();
     if puzzle == "calorie_counting" {
         let count = match_argument::<usize>(args)?;
-        let file_name = match_argument::<String>(args)?;
-        Ok(PuzzleInput::CalorieCounting(file_name, count))
+        Ok(PuzzleInput::CalorieCounting(CalorieCountingArgs { count }))
     } else if puzzle == "rock_paper_scissors" {
-        let file_name = match_argument::<String>(args)?;
-        Ok(PuzzleInput::RockPaperScissors(file_name))
-    } else if puzzle == "rock_paper_scissors_reverse" {
-        let file_name = match_argument::<String>(args)?;
-        Ok(PuzzleInput::RockPaperScissorsReverse(file_name))
+        let arg_type = match match_argument::<String>(args)?.as_str() {
+            "regular" => Ok(RockPaperScissorsArgType::Regular),
+            "reverse" => Ok(RockPaperScissorsArgType::Reverse),
+            _ => Err(error_message),
+        }?;
+
+        Ok(PuzzleInput::RockPaperScissors(RockPaperScissorsArgs {
+            arg_type,
+        }))
     } else {
         Err(error_message)
     }

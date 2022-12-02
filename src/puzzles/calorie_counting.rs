@@ -1,4 +1,9 @@
-use std::iter::Sum;
+use crate::parse;
+use std::{error::Error, fmt::Display, iter::Sum};
+
+pub struct CalorieCountingArgs {
+    pub count: usize,
+}
 
 struct SplitByNoneIterator<'a, T, U>
 where
@@ -42,6 +47,15 @@ where
     let mut elf_vector = elf_iterator.collect::<Vec<T>>();
     elf_vector.sort_by(|a, b| b.cmp(a));
     elf_vector.into_iter().take(count).sum()
+}
+
+pub fn main(
+    file_contents: String,
+    args: &CalorieCountingArgs,
+) -> Result<Box<dyn Display>, Box<dyn Error>> {
+    let calories_lines = parse::parse_as_newline_separated_option::<i32>(file_contents)?;
+    let calories = sum_of_top_group_sums(&mut calories_lines.into_iter(), args.count);
+    Ok(Box::new(calories))
 }
 
 #[cfg(test)]
