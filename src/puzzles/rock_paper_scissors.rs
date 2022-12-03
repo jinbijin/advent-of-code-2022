@@ -1,15 +1,18 @@
-pub mod common;
+mod common;
 mod error;
+mod lib;
 mod mapping;
 
-use crate::parse;
-use common::{RpsMatchWithResult, RpsResult, RpsType, Scorable};
-use error::RpsMatchParseError;
+use crate::file::{self, FileErrorCollection};
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
-    iter::Sum,
     str::FromStr,
+};
+
+use self::{
+    error::RpsMatchParseError,
+    lib::{RpsDesiredResult, RpsMatch},
 };
 
 pub enum ParseRockPaperScissorsArgsError {
@@ -52,127 +55,16 @@ impl FromStr for RockPaperScissorsArgs {
     }
 }
 
-pub struct RpsMatch {
-    pub opponent_choice: RpsType,
-    pub own_choice: RpsType,
-}
-
-impl RpsMatchWithResult for RpsMatch {
-    fn own_choice(&self) -> Option<RpsType> {
-        Some(self.own_choice)
-    }
-
-    fn result(&self) -> Option<RpsResult> {
-        let map = mapping::RPS_MATCH_RESULT_MAPPING.iter().find(|map| {
-            map.opponent_choice == self.opponent_choice && map.own_choice == self.own_choice
-        })?;
-        Some(map.result)
-    }
-}
-
-impl RpsMatchWithResult for RpsDesiredResult {
-    fn own_choice(&self) -> Option<RpsType> {
-        let map = mapping::RPS_MATCH_RESULT_MAPPING
-            .iter()
-            .find(|map| map.opponent_choice == self.opponent_choice && map.result == self.result)?;
-        Some(map.own_choice)
-    }
-
-    fn result(&self) -> Option<RpsResult> {
-        Some(self.result)
-    }
-}
-
-impl FromStr for RpsMatch {
-    type Err = RpsMatchParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut chars = s.chars();
-        let opponent_choice = match chars.next() {
-            Some('A') => Ok(RpsType::Rock),
-            Some('B') => Ok(RpsType::Paper),
-            Some('C') => Ok(RpsType::Scissors),
-            other => Err(RpsMatchParseError::OpponentChoiceParseError(other)),
-        }?;
-        match chars.next() {
-            Some(' ') => Ok(()),
-            other => Err(RpsMatchParseError::SeparatorParseError(other)),
-        }?;
-        let own_choice = match chars.next() {
-            Some('X') => Ok(RpsType::Rock),
-            Some('Y') => Ok(RpsType::Paper),
-            Some('Z') => Ok(RpsType::Scissors),
-            other => Err(RpsMatchParseError::OpponentChoiceParseError(other)),
-        }?;
-        match chars.next() {
-            None => Ok(()),
-            _ => Err(RpsMatchParseError::EndOfLineParseError),
-        }?;
-        Ok(RpsMatch {
-            opponent_choice,
-            own_choice,
-        })
-    }
-}
-
-pub struct RpsDesiredResult {
-    pub opponent_choice: RpsType,
-    pub result: RpsResult,
-}
-
-impl FromStr for RpsDesiredResult {
-    type Err = RpsMatchParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut chars = s.chars();
-        let opponent_choice = match chars.next() {
-            Some('A') => Ok(RpsType::Rock),
-            Some('B') => Ok(RpsType::Paper),
-            Some('C') => Ok(RpsType::Scissors),
-            other => Err(RpsMatchParseError::OpponentChoiceParseError(other)),
-        }?;
-        match chars.next() {
-            Some(' ') => Ok(()),
-            other => Err(RpsMatchParseError::SeparatorParseError(other)),
-        }?;
-        let result = match chars.next() {
-            Some('X') => Ok(RpsResult::Loss),
-            Some('Y') => Ok(RpsResult::Draw),
-            Some('Z') => Ok(RpsResult::Win),
-            other => Err(RpsMatchParseError::ResultParseError(other)),
-        }?;
-        match chars.next() {
-            None => Ok(()),
-            _ => Err(RpsMatchParseError::EndOfLineParseError),
-        }?;
-        Ok(RpsDesiredResult {
-            opponent_choice,
-            result,
-        })
-    }
-}
-
-pub fn get_tournament_score<T, U>(rps_matches: &mut impl Iterator<Item = U>) -> T
-where
-    T: Sum,
-    U: Scorable<T>,
-{
-    rps_matches
-        .into_iter()
-        .map(|rps_match| rps_match.score())
-        .sum::<T>()
-}
-
 pub fn main(
     file_contents: String,
     args: &RockPaperScissorsArgs,
-) -> Result<Box<dyn Display>, Box<dyn Error>> {
+) -> Result<Box<dyn Display>, FileErrorCollection<RpsMatchParseError>> {
     let score = match args {
-        RockPaperScissorsArgs::Regular => get_tournament_score(
-            &mut parse::parse_as_newline_separated::<RpsMatch>(file_contents)?.into_iter(),
+        RockPaperScissorsArgs::Regular => lib::get_tournament_score(
+            &mut file::parse_lines::<RpsMatch>(file_contents)?.into_iter(),
         ),
-        RockPaperScissorsArgs::Reverse => get_tournament_score(
-            &mut parse::parse_as_newline_separated::<RpsDesiredResult>(file_contents)?.into_iter(),
+        RockPaperScissorsArgs::Reverse => lib::get_tournament_score(
+            &mut file::parse_lines::<RpsDesiredResult>(file_contents)?.into_iter(),
         ),
     };
     Ok(Box::new(score))
@@ -184,49 +76,25 @@ mod tests {
 
     use super::*;
 
+    const INPUT_TEXT: &str = "\
+A Y
+B X
+C Z
+";
+
     #[test]
     fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let rps_matches = vec![
-            RpsMatch {
-                opponent_choice: RpsType::Rock,
-                own_choice: RpsType::Paper,
-            },
-            RpsMatch {
-                opponent_choice: RpsType::Paper,
-                own_choice: RpsType::Rock,
-            },
-            RpsMatch {
-                opponent_choice: RpsType::Scissors,
-                own_choice: RpsType::Scissors,
-            },
-        ];
+        let output = main(INPUT_TEXT.to_string(), &RockPaperScissorsArgs::Regular)?;
 
-        let score = get_tournament_score(&mut rps_matches.into_iter());
-
-        assert_eq!(15, score);
+        assert_eq!("15", output.to_string());
         Ok(())
     }
 
     #[test]
     fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let rps_matches = vec![
-            RpsDesiredResult {
-                opponent_choice: RpsType::Rock,
-                result: RpsResult::Draw,
-            },
-            RpsDesiredResult {
-                opponent_choice: RpsType::Paper,
-                result: RpsResult::Loss,
-            },
-            RpsDesiredResult {
-                opponent_choice: RpsType::Scissors,
-                result: RpsResult::Win,
-            },
-        ];
+        let output = main(INPUT_TEXT.to_string(), &RockPaperScissorsArgs::Reverse)?;
 
-        let score = get_tournament_score(&mut rps_matches.into_iter());
-
-        assert_eq!(12, score);
+        assert_eq!("12", output.to_string());
         Ok(())
     }
 }

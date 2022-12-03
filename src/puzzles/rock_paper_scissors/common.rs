@@ -42,8 +42,8 @@ impl Scorable<i32> for RpsResult {
 }
 
 pub trait RpsMatchWithResult {
-    fn own_choice(&self) -> Option<RpsType>;
-    fn result(&self) -> Option<RpsResult>;
+    fn own_choice(&self) -> RpsType;
+    fn result(&self) -> RpsResult;
 }
 
 impl<T> Scorable<i32> for T
@@ -51,14 +51,6 @@ where
     T: RpsMatchWithResult,
 {
     fn score(&self) -> i32 {
-        let own_score = match self.own_choice() {
-            Some(rps_type) => rps_type.score(),
-            None => 0, // Should not occur
-        };
-        let result_score = match self.result() {
-            Some(rps_result) => rps_result.score(),
-            None => 0, // Should not occur
-        };
-        own_score + result_score
+        self.own_choice().score() + self.result().score()
     }
 }

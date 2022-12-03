@@ -61,3 +61,21 @@ where
         }
     }
 }
+
+pub trait MatchArgsIterator {
+    fn next_match<T>(&mut self) -> Result<T, T::Err>
+    where
+        T: MatchArgs;
+}
+
+impl<TIter> MatchArgsIterator for TIter
+where
+    TIter: Iterator<Item = String>,
+{
+    fn next_match<T>(&mut self) -> Result<T, T::Err>
+    where
+        T: MatchArgs,
+    {
+        T::match_args(self)
+    }
+}
