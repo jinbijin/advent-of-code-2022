@@ -1,16 +1,19 @@
 pub mod calorie_counting;
 pub mod rock_paper_scissors;
+pub mod rucksack_reorganization;
 
 use std::{error::Error, fs, str::FromStr};
 
 use self::{
     calorie_counting::CalorieCountingArgs,
     rock_paper_scissors::{RockPaperScissorsArgType, RockPaperScissorsArgs},
+    rucksack_reorganization::RucksackReorganizationArgs,
 };
 
 pub enum PuzzleInput {
     CalorieCounting(CalorieCountingArgs),
     RockPaperScissors(RockPaperScissorsArgs),
+    RucksackReorganization(RucksackReorganizationArgs),
 }
 
 impl PuzzleInput {
@@ -26,6 +29,9 @@ impl PuzzleInput {
         let output = match self {
             Self::CalorieCounting(args) => calorie_counting::main(file_contents, args),
             Self::RockPaperScissors(args) => rock_paper_scissors::main(file_contents, args),
+            Self::RucksackReorganization(args) => {
+                rucksack_reorganization::main(file_contents, args)
+            }
         }?;
         println!("The answer is: {}", output);
         Ok(())
@@ -35,6 +41,7 @@ impl PuzzleInput {
         match self {
             Self::CalorieCounting(_) => "calorie_counting",
             Self::RockPaperScissors(_) => "rock_paper_scissors",
+            Self::RucksackReorganization(_) => "rucksack_reorganization",
         }
     }
 }
@@ -68,6 +75,14 @@ fn match_puzzle<'a>(
         Ok(PuzzleInput::RockPaperScissors(RockPaperScissorsArgs {
             arg_type,
         }))
+    } else if puzzle == "rucksack_reorganization" {
+        let arg_type = match match_argument::<String>(args)?.as_str() {
+            "compartments" => Ok(RucksackReorganizationArgs::Compartments),
+            "rucksack_groups" => Ok(RucksackReorganizationArgs::RucksackGroups),
+            _ => Err(error_message),
+        }?;
+
+        Ok(PuzzleInput::RucksackReorganization(arg_type))
     } else {
         Err(error_message)
     }
