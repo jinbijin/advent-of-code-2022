@@ -1,7 +1,5 @@
 mod lib;
 
-use std::fmt::Display;
-
 use crate::{
     file::{self, FileErrorCollection},
     input::puzzle_input::PuzzleInput,
@@ -11,7 +9,11 @@ use self::lib::CampAssignment;
 
 use crate::input::puzzle_part::PuzzlePart;
 
-pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn camp_cleanup(input: PuzzleInput) -> Result<String, FileErrorCollection> {
     let camp_assignments = file::parse_lines::<CampAssignment>(input.file_contents)?;
     let answer = camp_assignments
         .iter()
@@ -21,7 +23,7 @@ pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection>
         })
         .count();
 
-    Ok(Box::new(answer))
+    Ok(answer.to_string())
 }
 
 #[cfg(test)]
@@ -39,8 +41,8 @@ mod tests {
 ";
 
     #[test]
-    fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_1() -> Result<(), Box<dyn Error>> {
+        let output = camp_cleanup(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part1,
         })?;
@@ -50,8 +52,8 @@ mod tests {
     }
 
     #[test]
-    fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_2() -> Result<(), Box<dyn Error>> {
+        let output = camp_cleanup(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part2,
         })?;

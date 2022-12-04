@@ -1,6 +1,6 @@
 mod lib;
 
-use std::{fmt::Display, vec::IntoIter};
+use std::vec::IntoIter;
 
 use crate::{
     file::{self, FileErrorCollection},
@@ -11,7 +11,11 @@ use self::lib::{Rucksack, VectorChunkIterator};
 
 use crate::input::puzzle_part::PuzzlePart;
 
-pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn rucksack_reorganization(input: PuzzleInput) -> Result<String, FileErrorCollection> {
     let rucksacks = file::parse_lines::<Rucksack>(input.file_contents)?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => rucksacks
@@ -25,7 +29,7 @@ pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection>
         .sum::<i32>(),
     };
 
-    Ok(Box::new(answer))
+    Ok(answer.to_string())
 }
 
 #[cfg(test)]
@@ -44,8 +48,8 @@ CrZsJsPPZsGzwwsLwLmpwMDw
 ";
 
     #[test]
-    fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_1() -> Result<(), Box<dyn Error>> {
+        let output = rucksack_reorganization(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part1,
         })?;
@@ -55,8 +59,8 @@ CrZsJsPPZsGzwwsLwLmpwMDw
     }
 
     #[test]
-    fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_2() -> Result<(), Box<dyn Error>> {
+        let output = rucksack_reorganization(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part2,
         })?;

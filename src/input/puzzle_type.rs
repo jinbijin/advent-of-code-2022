@@ -59,14 +59,14 @@ impl PuzzleType {
         }
     }
 
-    pub fn solver(
-        &self,
-    ) -> impl FnOnce(PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+    pub fn solver(&self) -> impl FnOnce(PuzzleInput) -> Result<String, FileErrorCollection> {
         match self {
-            Self::CalorieCounting => crate::puzzles::calorie_counting::main,
-            Self::RockPaperScissors => crate::puzzles::rock_paper_scissors::main,
-            Self::RucksackReorganization => crate::puzzles::rucksack_reorganization::main,
-            Self::CampCleanup => crate::puzzles::camp_cleanup::main,
+            Self::CalorieCounting => crate::puzzles::calorie_counting::calorie_counting,
+            Self::RockPaperScissors => crate::puzzles::rock_paper_scissors::rock_paper_scissors,
+            Self::RucksackReorganization => {
+                crate::puzzles::rucksack_reorganization::rucksack_reorganization
+            }
+            Self::CampCleanup => crate::puzzles::camp_cleanup::camp_cleanup,
         }
     }
 }

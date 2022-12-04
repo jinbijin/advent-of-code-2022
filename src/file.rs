@@ -4,11 +4,15 @@ use std::{
     str::FromStr,
 };
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 struct FileErrorWithLine {
     line: usize,
     error_description: String,
 }
 
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct FileErrorCollection(Vec<FileErrorWithLine>);
 
 impl Display for FileErrorCollection {
@@ -35,6 +39,15 @@ impl Debug for FileErrorCollection {
 }
 
 impl Error for FileErrorCollection {}
+
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
+impl FileErrorCollection {
+    #[wasm_bindgen]
+    pub fn display(&self) -> String {
+        self.to_string()
+    }
+}
 
 enum FileParseResult<T> {
     FileOk(Vec<T>),

@@ -1,4 +1,4 @@
-use advent_of_code_2022::input::PuzzleArgs;
+use aoc2022::input::PuzzleArgs;
 use std::{convert::Infallible, env, error::Error, process};
 
 fn main() -> Result<(), Infallible> {

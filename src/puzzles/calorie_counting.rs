@@ -1,14 +1,17 @@
 mod lib;
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 use crate::{
     file::{self, FileErrorCollection},
     input::puzzle_input::PuzzleInput,
 };
-use std::fmt::Display;
 
 use crate::input::puzzle_part::PuzzlePart;
 
-pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn calorie_counting(input: PuzzleInput) -> Result<String, FileErrorCollection> {
     let calories_lines = file::parse_optional_lines::<i32>(input.file_contents)?;
     let calories = lib::sum_of_top_group_sums(
         &mut calories_lines.into_iter(),
@@ -17,7 +20,7 @@ pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection>
             PuzzlePart::Part2 => 3,
         },
     );
-    Ok(Box::new(calories))
+    Ok(calories.to_string())
 }
 
 #[cfg(test)]
@@ -43,8 +46,8 @@ mod tests {
 ";
 
     #[test]
-    fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_1() -> Result<(), Box<dyn Error>> {
+        let output = calorie_counting(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part1,
         })?;
@@ -54,8 +57,8 @@ mod tests {
     }
 
     #[test]
-    fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_2() -> Result<(), Box<dyn Error>> {
+        let output = calorie_counting(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part2,
         })?;

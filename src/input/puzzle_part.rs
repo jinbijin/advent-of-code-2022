@@ -4,6 +4,9 @@ use std::{
     str::FromStr,
 };
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 pub enum ParsePuzzlePartError {
     InvalidValue(String),
 }
@@ -23,6 +26,7 @@ impl Debug for ParsePuzzlePartError {
 
 impl Error for ParsePuzzlePartError {}
 
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
 #[derive(Clone, Copy)]
 pub enum PuzzlePart {
     Part1,

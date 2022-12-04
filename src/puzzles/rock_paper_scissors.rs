@@ -7,13 +7,16 @@ use crate::{
     file::{self, FileErrorCollection},
     input::puzzle_input::PuzzleInput,
 };
-use std::fmt::Display;
 
 use self::lib::{RpsDesiredResult, RpsMatch};
 
 use crate::input::puzzle_part::PuzzlePart;
 
-pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
+#[cfg_attr(feature = "wasm", wasm_bindgen)]
+pub fn rock_paper_scissors(input: PuzzleInput) -> Result<String, FileErrorCollection> {
     let score = match input.puzzle_part {
         PuzzlePart::Part1 => lib::get_tournament_score(
             &mut file::parse_lines::<RpsMatch>(input.file_contents)?.into_iter(),
@@ -22,7 +25,7 @@ pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection>
             &mut file::parse_lines::<RpsDesiredResult>(input.file_contents)?.into_iter(),
         ),
     };
-    Ok(Box::new(score))
+    Ok(score.to_string())
 }
 
 #[cfg(test)]
@@ -38,8 +41,8 @@ C Z
 ";
 
     #[test]
-    fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_1() -> Result<(), Box<dyn Error>> {
+        let output = rock_paper_scissors(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part1,
         })?;
@@ -49,8 +52,8 @@ C Z
     }
 
     #[test]
-    fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(PuzzleInput {
+    fn example_2() -> Result<(), Box<dyn Error>> {
+        let output = rock_paper_scissors(PuzzleInput {
             file_contents: INPUT_TEXT.to_string(),
             puzzle_part: PuzzlePart::Part2,
         })?;
