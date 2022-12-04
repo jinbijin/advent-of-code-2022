@@ -4,52 +4,57 @@ use std::{
     str::FromStr,
 };
 
-struct FileErrorWithLine<E> {
+struct FileErrorWithLine {
     line: usize,
-    error: E,
+    error_description: String,
 }
 
-pub struct FileErrorCollection<E>(Vec<FileErrorWithLine<E>>);
+pub struct FileErrorCollection(Vec<FileErrorWithLine>);
 
-impl<E> Display for FileErrorCollection<E>
-where
-    E: Display,
-{
+impl Display for FileErrorCollection {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         writeln!(f, "Errors:")?;
         let FileErrorCollection(file_errors) = self;
         for file_error in file_errors {
-            writeln!(f, "Line {}: {}", file_error.line + 1, file_error.error)?;
+            writeln!(
+                f,
+                "Line {}: {}",
+                file_error.line + 1,
+                file_error.error_description
+            )?;
         }
 
         Ok(())
     }
 }
 
-impl<E> Debug for FileErrorCollection<E>
-where
-    E: Display,
-{
+impl Debug for FileErrorCollection {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        <FileErrorCollection<E> as Display>::fmt(self, f)
+        <FileErrorCollection as Display>::fmt(self, f)
     }
 }
 
-impl<E> Error for FileErrorCollection<E> where E: Display {}
+impl Error for FileErrorCollection {}
 
-enum FileParseResult<T, E> {
+enum FileParseResult<T> {
     FileOk(Vec<T>),
-    FileErr(FileErrorCollection<E>),
+    FileErr(FileErrorCollection),
 }
 
-impl<T, E> FromIterator<Result<T, E>> for FileParseResult<T, E> {
+impl<T, E> FromIterator<Result<T, E>> for FileParseResult<T>
+where
+    E: Display,
+{
     fn from_iter<I: IntoIterator<Item = Result<T, E>>>(iter: I) -> Self {
-        let mut errors: Vec<FileErrorWithLine<E>> = Vec::new();
+        let mut errors: Vec<FileErrorWithLine> = Vec::new();
         let mut result: Vec<T> = Vec::new();
         for (line, item) in iter.into_iter().enumerate() {
             match item {
                 Ok(value) => result.push(value),
-                Err(error) => errors.push(FileErrorWithLine { line, error }),
+                Err(error) => errors.push(FileErrorWithLine {
+                    line,
+                    error_description: error.to_string(),
+                }),
             }
         }
 
@@ -61,8 +66,8 @@ impl<T, E> FromIterator<Result<T, E>> for FileParseResult<T, E> {
     }
 }
 
-impl<T, E> From<FileParseResult<T, E>> for Result<Vec<T>, FileErrorCollection<E>> {
-    fn from(value: FileParseResult<T, E>) -> Self {
+impl<T> From<FileParseResult<T>> for Result<Vec<T>, FileErrorCollection> {
+    fn from(value: FileParseResult<T>) -> Self {
         match value {
             FileParseResult::FileOk(result) => Ok(result),
             FileParseResult::FileErr(errors) => Err(errors),
@@ -70,24 +75,22 @@ impl<T, E> From<FileParseResult<T, E>> for Result<Vec<T>, FileErrorCollection<E>
     }
 }
 
-pub fn parse_lines<T>(
-    file_contents: String,
-) -> Result<Vec<T>, FileErrorCollection<<T as FromStr>::Err>>
+pub fn parse_lines<T>(file_contents: String) -> Result<Vec<T>, FileErrorCollection>
 where
     T: FromStr,
+    T::Err: Display,
 {
     file_contents
         .lines()
         .map(|line| -> Result<T, <T as FromStr>::Err> { line.parse::<T>() })
-        .collect::<FileParseResult<T, <T as FromStr>::Err>>()
+        .collect::<FileParseResult<T>>()
         .into()
 }
 
-pub fn parse_optional_lines<T>(
-    file_contents: String,
-) -> Result<Vec<Option<T>>, FileErrorCollection<<T as FromStr>::Err>>
+pub fn parse_optional_lines<T>(file_contents: String) -> Result<Vec<Option<T>>, FileErrorCollection>
 where
     T: FromStr,
+    T::Err: Display,
 {
     file_contents
         .lines()
@@ -98,6 +101,6 @@ where
                 line.parse::<T>().map(|value| Some(value))
             }
         })
-        .collect::<FileParseResult<Option<T>, <T as FromStr>::Err>>()
+        .collect::<FileParseResult<Option<T>>>()
         .into()
 }

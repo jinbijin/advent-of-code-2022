@@ -3,68 +3,23 @@ mod error;
 mod lib;
 mod mapping;
 
-use crate::file::{self, FileErrorCollection};
-use std::{
-    error::Error,
-    fmt::{self, Debug, Display, Formatter},
-    str::FromStr,
+use crate::{
+    file::{self, FileErrorCollection},
+    input::puzzle_input::PuzzleInput,
 };
+use std::fmt::Display;
 
-use self::{
-    error::RpsMatchParseError,
-    lib::{RpsDesiredResult, RpsMatch},
-};
+use self::lib::{RpsDesiredResult, RpsMatch};
 
-pub enum ParseRockPaperScissorsArgsError {
-    InvalidValue(String),
-}
+use crate::input::puzzle_part::PuzzlePart;
 
-impl Display for ParseRockPaperScissorsArgsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self::InvalidValue(value) = self;
-        write!(
-            f,
-            "Invalid option '{}' for puzzle 'rock_paper_scissors'",
-            value
-        )
-    }
-}
-
-impl Debug for ParseRockPaperScissorsArgsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        (self as &dyn Display).fmt(f)
-    }
-}
-
-impl Error for ParseRockPaperScissorsArgsError {}
-
-pub enum RockPaperScissorsArgs {
-    Regular,
-    Reverse,
-}
-
-impl FromStr for RockPaperScissorsArgs {
-    type Err = ParseRockPaperScissorsArgsError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "regular" => Ok(Self::Regular),
-            "reverse" => Ok(Self::Reverse),
-            _ => Err(Self::Err::InvalidValue(s.to_string())),
-        }
-    }
-}
-
-pub fn main(
-    file_contents: String,
-    args: &RockPaperScissorsArgs,
-) -> Result<Box<dyn Display>, FileErrorCollection<RpsMatchParseError>> {
-    let score = match args {
-        RockPaperScissorsArgs::Regular => lib::get_tournament_score(
-            &mut file::parse_lines::<RpsMatch>(file_contents)?.into_iter(),
+pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+    let score = match input.puzzle_part {
+        PuzzlePart::Part1 => lib::get_tournament_score(
+            &mut file::parse_lines::<RpsMatch>(input.file_contents)?.into_iter(),
         ),
-        RockPaperScissorsArgs::Reverse => lib::get_tournament_score(
-            &mut file::parse_lines::<RpsDesiredResult>(file_contents)?.into_iter(),
+        PuzzlePart::Part2 => lib::get_tournament_score(
+            &mut file::parse_lines::<RpsDesiredResult>(input.file_contents)?.into_iter(),
         ),
     };
     Ok(Box::new(score))
@@ -84,7 +39,10 @@ C Z
 
     #[test]
     fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(INPUT_TEXT.to_string(), &RockPaperScissorsArgs::Regular)?;
+        let output = main(PuzzleInput {
+            file_contents: INPUT_TEXT.to_string(),
+            puzzle_part: PuzzlePart::Part1,
+        })?;
 
         assert_eq!("15", output.to_string());
         Ok(())
@@ -92,7 +50,10 @@ C Z
 
     #[test]
     fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(INPUT_TEXT.to_string(), &RockPaperScissorsArgs::Reverse)?;
+        let output = main(PuzzleInput {
+            file_contents: INPUT_TEXT.to_string(),
+            puzzle_part: PuzzlePart::Part2,
+        })?;
 
         assert_eq!("12", output.to_string());
         Ok(())

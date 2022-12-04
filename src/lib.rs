@@ -1,3 +1,3 @@
 pub mod file;
-pub mod match_args;
-pub mod puzzles;
+pub mod input;
+mod puzzles;

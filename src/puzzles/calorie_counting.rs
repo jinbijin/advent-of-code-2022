@@ -1,27 +1,22 @@
 mod lib;
 
-use crate::file::{self, FileErrorCollection};
-use std::{fmt::Display, num::ParseIntError, str::FromStr};
+use crate::{
+    file::{self, FileErrorCollection},
+    input::puzzle_input::PuzzleInput,
+};
+use std::fmt::Display;
 
-pub struct CalorieCountingArgs {
-    pub count: usize,
-}
+use crate::input::puzzle_part::PuzzlePart;
 
-impl FromStr for CalorieCountingArgs {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let count = s.parse::<usize>()?;
-        Ok(Self { count })
-    }
-}
-
-pub fn main(
-    file_contents: String,
-    args: &CalorieCountingArgs,
-) -> Result<Box<dyn Display>, FileErrorCollection<<i32 as FromStr>::Err>> {
-    let calories_lines = file::parse_optional_lines::<i32>(file_contents)?;
-    let calories = lib::sum_of_top_group_sums(&mut calories_lines.into_iter(), args.count);
+pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+    let calories_lines = file::parse_optional_lines::<i32>(input.file_contents)?;
+    let calories = lib::sum_of_top_group_sums(
+        &mut calories_lines.into_iter(),
+        match input.puzzle_part {
+            PuzzlePart::Part1 => 1,
+            PuzzlePart::Part2 => 3,
+        },
+    );
     Ok(Box::new(calories))
 }
 
@@ -49,7 +44,10 @@ mod tests {
 
     #[test]
     fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(INPUT_TEXT.to_string(), &CalorieCountingArgs { count: 1 })?;
+        let output = main(PuzzleInput {
+            file_contents: INPUT_TEXT.to_string(),
+            puzzle_part: PuzzlePart::Part1,
+        })?;
 
         assert_eq!("24000", output.to_string());
         Ok(())
@@ -57,7 +55,10 @@ mod tests {
 
     #[test]
     fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(INPUT_TEXT.to_string(), &CalorieCountingArgs { count: 3 })?;
+        let output = main(PuzzleInput {
+            file_contents: INPUT_TEXT.to_string(),
+            puzzle_part: PuzzlePart::Part2,
+        })?;
 
         assert_eq!("45000", output.to_string());
         Ok(())

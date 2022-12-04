@@ -1,61 +1,23 @@
 mod lib;
 
-use std::{
-    error::Error,
-    fmt::{self, Debug, Display, Formatter},
-    str::FromStr,
+use std::fmt::Display;
+
+use crate::{
+    file::{self, FileErrorCollection},
+    input::puzzle_input::PuzzleInput,
 };
 
-use crate::file::{self, FileErrorCollection};
+use self::lib::CampAssignment;
 
-use self::lib::{CampAssignment, ParseCampAssignmentError};
+use crate::input::puzzle_part::PuzzlePart;
 
-pub enum ParseCampCleanupArgsError {
-    InvalidValue(String),
-}
-
-impl Display for ParseCampCleanupArgsError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self::InvalidValue(value) = self;
-        write!(f, "Invalid option '{}' for puzzle 'camp_cleanup'", value)
-    }
-}
-
-impl Debug for ParseCampCleanupArgsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        (self as &dyn Display).fmt(f)
-    }
-}
-
-impl Error for ParseCampCleanupArgsError {}
-
-pub enum CampCleanupArgs {
-    Contain,
-    Overlap,
-}
-
-impl FromStr for CampCleanupArgs {
-    type Err = ParseCampCleanupArgsError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "contain" => Ok(Self::Contain),
-            "overlap" => Ok(Self::Overlap),
-            _ => Err(Self::Err::InvalidValue(s.to_string())),
-        }
-    }
-}
-
-pub fn main(
-    file_contents: String,
-    args: &CampCleanupArgs,
-) -> Result<Box<dyn Display>, FileErrorCollection<ParseCampAssignmentError>> {
-    let camp_assignments = file::parse_lines::<CampAssignment>(file_contents)?;
+pub fn main(input: PuzzleInput) -> Result<Box<dyn Display>, FileErrorCollection> {
+    let camp_assignments = file::parse_lines::<CampAssignment>(input.file_contents)?;
     let answer = camp_assignments
         .iter()
-        .filter(|camp_assignment| match args {
-            CampCleanupArgs::Contain => camp_assignment.one_is_contained_in_other(),
-            CampCleanupArgs::Overlap => camp_assignment.overlaps(),
+        .filter(|camp_assignment| match input.puzzle_part {
+            PuzzlePart::Part1 => camp_assignment.one_is_contained_in_other(),
+            PuzzlePart::Part2 => camp_assignment.overlaps(),
         })
         .count();
 
@@ -78,7 +40,10 @@ mod tests {
 
     #[test]
     fn example_1_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(INPUT_TEXT.to_string(), &CampCleanupArgs::Contain)?;
+        let output = main(PuzzleInput {
+            file_contents: INPUT_TEXT.to_string(),
+            puzzle_part: PuzzlePart::Part1,
+        })?;
 
         assert_eq!("2", output.to_string());
         Ok(())
@@ -86,7 +51,10 @@ mod tests {
 
     #[test]
     fn example_2_should_be_correct() -> Result<(), Box<dyn Error>> {
-        let output = main(INPUT_TEXT.to_string(), &CampCleanupArgs::Overlap)?;
+        let output = main(PuzzleInput {
+            file_contents: INPUT_TEXT.to_string(),
+            puzzle_part: PuzzlePart::Part2,
+        })?;
 
         assert_eq!("4", output.to_string());
         Ok(())
