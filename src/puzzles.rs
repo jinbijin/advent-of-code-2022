@@ -1,4 +1,5 @@
 pub mod calorie_counting;
+pub mod camp_cleanup;
 pub mod rock_paper_scissors;
 pub mod rucksack_reorganization;
 
@@ -11,7 +12,8 @@ use std::{
 use crate::match_args::{MatchArgs, MatchArgsError, MatchArgsIterator};
 
 use self::{
-    calorie_counting::CalorieCountingArgs, rock_paper_scissors::RockPaperScissorsArgs,
+    calorie_counting::CalorieCountingArgs, camp_cleanup::CampCleanupArgs,
+    rock_paper_scissors::RockPaperScissorsArgs,
     rucksack_reorganization::RucksackReorganizationArgs,
 };
 
@@ -38,6 +40,7 @@ pub enum PuzzleInput {
     CalorieCounting(CalorieCountingArgs),
     RockPaperScissors(RockPaperScissorsArgs),
     RucksackReorganization(RucksackReorganizationArgs),
+    CampCleanup(CampCleanupArgs),
 }
 
 impl MatchArgs for PuzzleInput {
@@ -79,6 +82,15 @@ impl MatchArgs for PuzzleInput {
                 })?;
                 Ok(Self::RucksackReorganization(args))
             }
+            "camp_cleanup" => {
+                let args = args.next_match().map_err(|err| match err {
+                    MatchArgsError::ParseError(err) => {
+                        MatchArgsError::ParseError(Box::new(err) as Box<dyn Error>)
+                    }
+                    MatchArgsError::EndOfArgsError => MatchArgsError::EndOfArgsError,
+                })?;
+                Ok(Self::CampCleanup(args))
+            }
             _ => Err(MatchArgsError::ParseError(Box::new(
                 ParsePuzzleTypeError::InvalidValue(puzzle.clone()),
             ))),
@@ -102,6 +114,7 @@ impl PuzzleInput {
             Self::RucksackReorganization(args) => {
                 rucksack_reorganization::main(file_contents, args)?
             }
+            Self::CampCleanup(args) => camp_cleanup::main(file_contents, args)?,
         };
         println!("The answer is: {}", output);
         Ok(())
@@ -112,6 +125,7 @@ impl PuzzleInput {
             Self::CalorieCounting(_) => "calorie_counting",
             Self::RockPaperScissors(_) => "rock_paper_scissors",
             Self::RucksackReorganization(_) => "rucksack_reorganization",
+            Self::CampCleanup(_) => "camp_cleanup",
         }
     }
 }
