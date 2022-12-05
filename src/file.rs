@@ -49,7 +49,7 @@ impl FileErrorCollection {
     }
 }
 
-enum FileParseResult<T> {
+pub enum FileParseResult<T> {
     FileOk(Vec<T>),
     FileErr(FileErrorCollection),
 }
