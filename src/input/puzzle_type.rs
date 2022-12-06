@@ -34,6 +34,7 @@ pub enum PuzzleType {
     RucksackReorganization,
     CampCleanup,
     SupplyStacks,
+    TuningTrouble,
 }
 
 impl FromStr for PuzzleType {
@@ -46,6 +47,7 @@ impl FromStr for PuzzleType {
             "rucksack_reorganization" => Ok(Self::RucksackReorganization),
             "camp_cleanup" => Ok(Self::CampCleanup),
             "supply_stacks" => Ok(Self::SupplyStacks),
+            "tuning_trouble" => Ok(Self::TuningTrouble),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -59,6 +61,7 @@ impl PuzzleType {
             Self::RucksackReorganization => "rucksack_reorganization",
             Self::CampCleanup => "camp_cleanup",
             Self::SupplyStacks => "supply_stacks",
+            Self::TuningTrouble => "tuning_trouble",
         }
     }
 
@@ -71,6 +74,7 @@ impl PuzzleType {
             }
             Self::CampCleanup => crate::puzzles::camp_cleanup::camp_cleanup,
             Self::SupplyStacks => crate::puzzles::supply_stacks::supply_stacks,
+            Self::TuningTrouble => crate::puzzles::tuning_trouble::tuning_trouble,
         }
     }
 }

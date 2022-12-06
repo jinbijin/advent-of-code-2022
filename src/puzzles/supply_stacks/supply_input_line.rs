@@ -186,7 +186,7 @@ where
 
 impl<'a, T> From<T> for ParseSupplyInputIterator<'a, T>
 where
-    T: Iterator<Item = &'a str>
+    T: Iterator<Item = &'a str>,
 {
     fn from(iterator: T) -> Self {
         ParseSupplyInputIterator {
