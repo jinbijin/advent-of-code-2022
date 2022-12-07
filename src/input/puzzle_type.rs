@@ -35,6 +35,7 @@ pub enum PuzzleType {
     CampCleanup,
     SupplyStacks,
     TuningTrouble,
+    NoSpaceLeftOnDevice,
 }
 
 impl FromStr for PuzzleType {
@@ -48,6 +49,7 @@ impl FromStr for PuzzleType {
             "camp_cleanup" => Ok(Self::CampCleanup),
             "supply_stacks" => Ok(Self::SupplyStacks),
             "tuning_trouble" => Ok(Self::TuningTrouble),
+            "no_space_left_on_device" => Ok(Self::NoSpaceLeftOnDevice),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -62,6 +64,7 @@ impl PuzzleType {
             Self::CampCleanup => "camp_cleanup",
             Self::SupplyStacks => "supply_stacks",
             Self::TuningTrouble => "tuning_trouble",
+            Self::NoSpaceLeftOnDevice => "no_space_left_on_device",
         }
     }
 
@@ -75,6 +78,9 @@ impl PuzzleType {
             Self::CampCleanup => crate::puzzles::camp_cleanup::camp_cleanup,
             Self::SupplyStacks => crate::puzzles::supply_stacks::supply_stacks,
             Self::TuningTrouble => crate::puzzles::tuning_trouble::tuning_trouble,
+            Self::NoSpaceLeftOnDevice => {
+                crate::puzzles::no_space_left_on_device::no_space_left_on_device
+            }
         }
     }
 }
