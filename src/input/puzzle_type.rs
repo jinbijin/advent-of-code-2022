@@ -36,6 +36,7 @@ pub enum PuzzleType {
     SupplyStacks,
     TuningTrouble,
     NoSpaceLeftOnDevice,
+    TreetopTreeHouse,
 }
 
 impl FromStr for PuzzleType {
@@ -50,6 +51,7 @@ impl FromStr for PuzzleType {
             "supply_stacks" => Ok(Self::SupplyStacks),
             "tuning_trouble" => Ok(Self::TuningTrouble),
             "no_space_left_on_device" => Ok(Self::NoSpaceLeftOnDevice),
+            "treetop_tree_house" => Ok(Self::TreetopTreeHouse),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -65,6 +67,7 @@ impl PuzzleType {
             Self::SupplyStacks => "supply_stacks",
             Self::TuningTrouble => "tuning_trouble",
             Self::NoSpaceLeftOnDevice => "no_space_left_on_device",
+            Self::TreetopTreeHouse => "treetop_tree_house",
         }
     }
 
@@ -81,6 +84,7 @@ impl PuzzleType {
             Self::NoSpaceLeftOnDevice => {
                 crate::puzzles::no_space_left_on_device::no_space_left_on_device
             }
+            Self::TreetopTreeHouse => crate::puzzles::treetop_tree_house::treetop_tree_house,
         }
     }
 }

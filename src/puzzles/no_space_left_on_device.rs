@@ -19,12 +19,12 @@ pub fn no_space_left_on_device(input: PuzzleInput) -> Result<String, FileErrorCo
         PuzzlePart::Part1 => {
             let sizes = file_system.get_directories_smaller_than(100000);
             sizes.iter().map(|(_, size)| size).sum::<usize>()
-        },
+        }
         PuzzlePart::Part2 => {
             let main_directory_size = file_system.get_size();
             let target_size = main_directory_size - 40000000;
             let mut size = file_system.get_directories_larger_than(target_size);
-            size.sort_by(|(_, x), (_, y)| { x.cmp(y) });
+            size.sort_by(|(_, x), (_, y)| x.cmp(y));
             let (_, size) = size[0];
             size
         }
