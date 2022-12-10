@@ -1,11 +1,12 @@
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
-    str::FromStr,
 };
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
+
+use crate::contents::errors::{ParseContentsError, ParseLineError, ParseSectionError};
 
 struct FileErrorWithLine {
     line: usize,
@@ -88,32 +89,19 @@ impl<T> From<FileParseResult<T>> for Result<Vec<T>, FileErrorCollection> {
     }
 }
 
-pub fn parse_lines<T>(file_contents: String) -> Result<Vec<T>, FileErrorCollection>
-where
-    T: FromStr,
-    T::Err: Display,
-{
-    file_contents
-        .lines()
-        .map(|line| -> Result<T, <T as FromStr>::Err> { line.parse::<T>() })
-        .collect::<FileParseResult<T>>()
-        .into()
-}
-
-pub fn parse_optional_lines<T>(file_contents: String) -> Result<Vec<Option<T>>, FileErrorCollection>
-where
-    T: FromStr,
-    T::Err: Display,
-{
-    file_contents
-        .lines()
-        .map(|line| -> Result<Option<T>, <T as FromStr>::Err> {
-            if line.is_empty() {
-                Ok(None)
-            } else {
-                line.parse::<T>().map(|value| Some(value))
-            }
-        })
-        .collect::<FileParseResult<Option<T>>>()
-        .into()
+impl From<FileErrorCollection> for ParseContentsError {
+    fn from(collection: FileErrorCollection) -> Self {
+        let FileErrorCollection(collection) = collection;
+        let line_errors = collection
+            .into_iter()
+            .map(
+                |FileErrorWithLine {
+                     line,
+                     error_description,
+                 }| { ParseLineError::new(line, error_description) },
+            )
+            .collect::<Vec<ParseLineError>>();
+        let section_error = ParseSectionError::new(0, 0, line_errors);
+        ParseContentsError::new(vec![section_error])
+    }
 }

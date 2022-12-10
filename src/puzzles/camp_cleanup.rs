@@ -1,20 +1,21 @@
 mod lib;
 
 use crate::{
-    file::{self, FileErrorCollection},
-    input::puzzle_input::PuzzleInput,
+    contents::{convert::AsParseLines, errors::ParseContentsError},
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
 use self::lib::CampAssignment;
-
-use crate::input::puzzle_part::PuzzlePart;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn camp_cleanup(input: PuzzleInput) -> Result<String, FileErrorCollection> {
-    let camp_assignments = file::parse_lines::<CampAssignment>(input.file_contents)?;
+pub fn camp_cleanup(input: PuzzleInput) -> Result<String, ParseContentsError> {
+    let camp_assignments = input
+        .file_contents
+        .as_str()
+        .parse_lines::<Vec<CampAssignment>>()?;
     let answer = camp_assignments
         .iter()
         .filter(|camp_assignment| match input.puzzle_part {
@@ -47,7 +48,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("2", output.to_string());
+        assert_eq!("2", output);
         Ok(())
     }
 
@@ -58,7 +59,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("4", output.to_string());
+        assert_eq!("4", output);
         Ok(())
     }
 }

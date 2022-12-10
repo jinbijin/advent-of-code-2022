@@ -5,14 +5,11 @@ use std::{
 
 pub enum ParseSupplyInputLineError {
     CrateLayerIncorrectlySeparated,
-    CrateLayerInvalidCrate { index: usize, value: String },
-    CrateLayerDoesNotFitBelowPrevious(Vec<usize>),
     StackMappingNotFound,
     StackMappingNotFollowedByEmptyLine,
     MoveInstructionInvalidFormat,
     MoveInstructionCountParseError(String),
     MoveInstructionFromParseError(String),
-    MoveInstructionToParseError(String),
 }
 
 impl Display for ParseSupplyInputLineError {
@@ -21,21 +18,6 @@ impl Display for ParseSupplyInputLineError {
             Self::CrateLayerIncorrectlySeparated => {
                 write!(f, "contains non-space character where space is expected")
             }
-            Self::CrateLayerInvalidCrate { index, value } => write!(
-                f,
-                "invalid value {} for crate in column {}",
-                value,
-                index + 1
-            ),
-            Self::CrateLayerDoesNotFitBelowPrevious(indices) => write!(
-                f,
-                "unexpected empty spaces under crates in columns {}",
-                indices
-                    .iter()
-                    .map(|index| { index.to_string() })
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            ),
             Self::StackMappingNotFound => write!(f, "did not find stack mapping"),
             Self::StackMappingNotFollowedByEmptyLine => {
                 write!(f, "expected empty line after stack mapping")
@@ -46,7 +28,6 @@ impl Display for ParseSupplyInputLineError {
             ),
             Self::MoveInstructionCountParseError(value) => write!(f, "invalid count '{}'", value),
             Self::MoveInstructionFromParseError(value) => write!(f, "invalid from '{}'", value),
-            Self::MoveInstructionToParseError(value) => write!(f, "invalid to '{}'", value),
         }
     }
 }

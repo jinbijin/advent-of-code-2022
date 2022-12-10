@@ -6,18 +6,18 @@ use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    file::{self, FileErrorCollection},
-    input::puzzle_input::PuzzleInput,
-    puzzles::rope_bridge::rope_motion::{RopeMotion, RopePosition, RopePositionCollector},
+    contents::{convert::AsParseLines, errors::ParseContentsError},
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
-use crate::input::puzzle_part::PuzzlePart;
-
-use self::rope_motion::Direction;
+use self::rope_motion::{Direction, RopeMotion, RopePosition, RopePositionCollector};
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn rope_bridge(input: PuzzleInput) -> Result<String, FileErrorCollection> {
-    let motions = file::parse_lines::<RopeMotion>(input.file_contents)?;
+pub fn rope_bridge(input: PuzzleInput) -> Result<String, ParseContentsError> {
+    let motions = input
+        .file_contents
+        .as_str()
+        .parse_lines::<Vec<RopeMotion>>()?;
     let directions = motions
         .into_iter()
         .flat_map(|motion| (0..motion.count).map(move |_| motion.direction))

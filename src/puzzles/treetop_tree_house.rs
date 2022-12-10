@@ -3,16 +3,14 @@ mod digit_grid;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+use self::digit_grid::{Coordinates, DigitGrid};
 use crate::{
-    file::FileErrorCollection,
-    input::puzzle_input::PuzzleInput,
-    puzzles::treetop_tree_house::digit_grid::{Coordinates, DigitGrid},
+    contents::errors::ParseContentsError,
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
-use crate::input::puzzle_part::PuzzlePart;
-
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn treetop_tree_house(input: PuzzleInput) -> Result<String, FileErrorCollection> {
+pub fn treetop_tree_house(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let grid = input.file_contents.parse::<DigitGrid>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => (0..grid.height)

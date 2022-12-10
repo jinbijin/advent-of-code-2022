@@ -3,8 +3,8 @@ use std::collections::{HashSet, VecDeque};
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::{file::FileErrorCollection, input::puzzle_input::PuzzleInput};
-
+use crate::contents::errors::ParseContentsError;
+use crate::input::puzzle_input::PuzzleInput;
 use crate::input::puzzle_part::PuzzlePart;
 
 fn deque_marks_start(deque: &VecDeque<char>, marker_len: usize) -> bool {
@@ -16,7 +16,7 @@ fn deque_marks_start(deque: &VecDeque<char>, marker_len: usize) -> bool {
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn tuning_trouble(input: PuzzleInput) -> Result<String, FileErrorCollection> {
+pub fn tuning_trouble(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let marker_len = match input.puzzle_part {
         PuzzlePart::Part1 => 4,
         PuzzlePart::Part2 => 14,
@@ -56,7 +56,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("7", output.to_string());
+        assert_eq!("7", output);
         Ok(())
     }
 
@@ -67,7 +67,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("5", output.to_string());
+        assert_eq!("5", output);
         Ok(())
     }
 
@@ -78,7 +78,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("6", output.to_string());
+        assert_eq!("6", output);
         Ok(())
     }
 
@@ -89,7 +89,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("10", output.to_string());
+        assert_eq!("10", output);
         Ok(())
     }
 
@@ -100,7 +100,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("11", output.to_string());
+        assert_eq!("11", output);
         Ok(())
     }
 
@@ -111,7 +111,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("19", output.to_string());
+        assert_eq!("19", output);
         Ok(())
     }
 
@@ -122,7 +122,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("23", output.to_string());
+        assert_eq!("23", output);
         Ok(())
     }
 
@@ -133,7 +133,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("23", output.to_string());
+        assert_eq!("23", output);
         Ok(())
     }
 
@@ -144,7 +144,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("29", output.to_string());
+        assert_eq!("29", output);
         Ok(())
     }
 
@@ -155,7 +155,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("26", output.to_string());
+        assert_eq!("26", output);
         Ok(())
     }
 }

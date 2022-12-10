@@ -1,26 +1,32 @@
-mod lib;
-
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    file::{self, FileErrorCollection},
-    input::puzzle_input::PuzzleInput,
+    contents::{convert::AsParseContents, errors::ParseContentsError},
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
-use crate::input::puzzle_part::PuzzlePart;
-
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn calorie_counting(input: PuzzleInput) -> Result<String, FileErrorCollection> {
-    let calories_lines = file::parse_optional_lines::<i32>(input.file_contents)?;
-    let calories = lib::sum_of_top_group_sums(
-        &mut calories_lines.into_iter(),
-        match input.puzzle_part {
-            PuzzlePart::Part1 => 1,
-            PuzzlePart::Part2 => 3,
-        },
-    );
-    Ok(calories.to_string())
+pub fn calorie_counting(input: PuzzleInput) -> Result<String, ParseContentsError> {
+    let calorie_counts = input
+        .file_contents
+        .as_str()
+        .parse_contents::<Vec<Vec<i32>>>()?;
+    let mut calorie_sums = calorie_counts
+        .into_iter()
+        .map(|group| group.into_iter().sum())
+        .collect::<Vec<i32>>();
+
+    // PERF (N: #groups, K: top # needed)
+    // Current: N log N
+    // Optimal: N log K
+    calorie_sums.sort_by(|x, y| y.cmp(x));
+    let count = match input.puzzle_part {
+        PuzzlePart::Part1 => 1,
+        PuzzlePart::Part2 => 3,
+    };
+    let answer = calorie_sums.into_iter().take(count).sum::<i32>();
+    Ok(answer.to_string())
 }
 
 #[cfg(test)]
@@ -52,7 +58,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("24000", output.to_string());
+        assert_eq!("24000", output);
         Ok(())
     }
 
@@ -63,7 +69,7 @@ mod tests {
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("45000", output.to_string());
+        assert_eq!("45000", output);
         Ok(())
     }
 }

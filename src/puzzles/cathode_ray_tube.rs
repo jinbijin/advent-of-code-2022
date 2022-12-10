@@ -3,18 +3,19 @@ mod signal_change;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+use crate::contents::convert::AsParseLines;
 use crate::{
-    common::vector_chunks::AsVectorChunks,
-    file::{self, FileErrorCollection},
-    input::puzzle_input::PuzzleInput,
+    common::vector_chunks::AsVectorChunks, contents::errors::ParseContentsError,
+    input::puzzle_input::PuzzleInput, input::puzzle_part::PuzzlePart,
     puzzles::cathode_ray_tube::signal_change::SignalChange,
 };
 
-use crate::input::puzzle_part::PuzzlePart;
-
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn cathode_ray_tube(input: PuzzleInput) -> Result<String, FileErrorCollection> {
-    let signal_changes = file::parse_lines::<SignalChange>(input.file_contents)?;
+pub fn cathode_ray_tube(input: PuzzleInput) -> Result<String, ParseContentsError> {
+    let signal_changes = input
+        .file_contents
+        .as_str()
+        .parse_lines::<Vec<SignalChange>>()?;
     let signal_strengths = signal_changes
         .into_iter()
         .flat_map(|c| c.get_value_changes("x").into_iter())
@@ -224,7 +225,7 @@ noop
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("13140", output.to_string());
+        assert_eq!("13140", output);
         Ok(())
     }
 
@@ -243,7 +244,7 @@ noop
 #######.......#######.......#######.....
 ";
 
-        assert_eq!(expected, output.to_string());
+        assert_eq!(expected, output);
         Ok(())
     }
 }

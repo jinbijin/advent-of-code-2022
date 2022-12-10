@@ -6,16 +6,15 @@ use std::{collections::HashMap, str::Lines};
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    file::{self, FileErrorCollection, FileParseResult},
+    contents::errors::ParseContentsError,
+    file::{FileErrorCollection, FileParseResult},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
 use self::supply_input_line::{ParseSupplyInputIterator, SupplyInputLine};
 
-struct CrateArrangement(HashMap<char, Vec<char>>);
-
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn supply_stacks(input: PuzzleInput) -> Result<String, FileErrorCollection> {
+pub fn supply_stacks(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let supply_input_iterator: ParseSupplyInputIterator<Lines> = input.file_contents.lines().into();
     let supply_input: Result<Vec<SupplyInputLine>, FileErrorCollection> = supply_input_iterator
         .collect::<FileParseResult<SupplyInputLine>>()
@@ -38,7 +37,7 @@ pub fn supply_stacks(input: PuzzleInput) -> Result<String, FileErrorCollection> 
             }
             SupplyInputLine::StackMappingLine(value) => {
                 stack_mapping = value.clone();
-                stacks = value.iter().map(|c| Vec::new()).collect::<Vec<Vec<char>>>();
+                stacks = value.iter().map(|_| Vec::new()).collect::<Vec<Vec<char>>>();
             }
         }
     }
@@ -114,7 +113,7 @@ move 1 from 1 to 2
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("CMZ", output.to_string());
+        assert_eq!("CMZ", output);
         Ok(())
     }
 
@@ -125,7 +124,7 @@ move 1 from 1 to 2
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("MCD", output.to_string());
+        assert_eq!("MCD", output);
         Ok(())
     }
 }

@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::file::FileErrorCollection;
+use crate::contents::errors::ParseContentsError;
 
 use super::puzzle_input::PuzzleInput;
 
@@ -77,7 +77,7 @@ impl PuzzleType {
         }
     }
 
-    pub fn solver(&self) -> impl FnOnce(PuzzleInput) -> Result<String, FileErrorCollection> {
+    pub fn solver(&self) -> impl FnOnce(PuzzleInput) -> Result<String, ParseContentsError> {
         match self {
             Self::CalorieCounting => crate::puzzles::calorie_counting::calorie_counting,
             Self::RockPaperScissors => crate::puzzles::rock_paper_scissors::rock_paper_scissors,

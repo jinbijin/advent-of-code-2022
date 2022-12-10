@@ -122,7 +122,7 @@ impl SectionsState {
 }
 
 #[derive(Debug, Clone)]
-struct Sections<'a> {
+pub struct Sections<'a> {
     source: &'a str,
     chars: Chars<'a>,
     state: SectionsState,
@@ -153,13 +153,13 @@ impl<'a> Iterator for Sections<'a> {
                 contents: &self.source[from.char_index..to.char_index],
             }),
             ContentSectionCharIterationResult::Continue(_) => {
-                unreachable!("Loop ran until result is not in this case.")
+                unreachable!("due to loop end condition")
             }
         }
     }
 }
 
-trait AsSections<'a> {
+pub trait AsSections<'a> {
     fn sections(&self) -> Sections<'a>;
 }
 
@@ -266,6 +266,26 @@ mod tests {
             ContentSection {
                 starts_at_line: 2,
                 contents: "def",
+            },
+        ];
+
+        assert_eq!(expected, sections);
+        Ok(())
+    }
+
+    #[test]
+    fn sections_should_work_with_non_ascii() -> Result<(), Box<dyn Error>> {
+        let sections = "こんにちは\r\n\r\n你好"
+            .sections()
+            .collect::<Vec<ContentSection>>();
+        let expected: Vec<ContentSection> = vec![
+            ContentSection {
+                starts_at_line: 0,
+                contents: "こんにちは",
+            },
+            ContentSection {
+                starts_at_line: 2,
+                contents: "你好",
             },
         ];
 

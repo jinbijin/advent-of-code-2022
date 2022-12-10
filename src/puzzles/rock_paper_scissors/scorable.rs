@@ -1,17 +1,15 @@
 use std::iter::Sum;
 
+use super::{
+    rps_match::{RpsMatch, RpsResult},
+    strategy::RpsType,
+};
+
 pub trait Scorable<T>
 where
     T: Sum,
 {
     fn score(&self) -> T;
-}
-
-#[derive(PartialEq, Clone, Copy)]
-pub enum RpsType {
-    Rock,
-    Paper,
-    Scissors,
 }
 
 impl Scorable<i32> for RpsType {
@@ -24,13 +22,6 @@ impl Scorable<i32> for RpsType {
     }
 }
 
-#[derive(PartialEq, Clone, Copy)]
-pub enum RpsResult {
-    Loss,
-    Draw,
-    Win,
-}
-
 impl Scorable<i32> for RpsResult {
     fn score(&self) -> i32 {
         match &self {
@@ -41,16 +32,8 @@ impl Scorable<i32> for RpsResult {
     }
 }
 
-pub trait RpsMatchWithResult {
-    fn own_choice(&self) -> RpsType;
-    fn result(&self) -> RpsResult;
-}
-
-impl<T> Scorable<i32> for T
-where
-    T: RpsMatchWithResult,
-{
+impl Scorable<i32> for RpsMatch {
     fn score(&self) -> i32 {
-        self.own_choice().score() + self.result().score()
+        self.own_choice.score() + self.result.score()
     }
 }

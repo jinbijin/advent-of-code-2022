@@ -4,16 +4,19 @@ mod file_tree;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::file;
-use crate::puzzles::no_space_left_on_device::command_line::CommandLine;
-use crate::puzzles::no_space_left_on_device::file_tree::Directory;
-use crate::{file::FileErrorCollection, input::puzzle_input::PuzzleInput};
-
+use self::command_line::CommandLine;
+use self::file_tree::Directory;
+use crate::contents::convert::AsParseLines;
+use crate::contents::errors::ParseContentsError;
+use crate::input::puzzle_input::PuzzleInput;
 use crate::input::puzzle_part::PuzzlePart;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn no_space_left_on_device(input: PuzzleInput) -> Result<String, FileErrorCollection> {
-    let command_lines = file::parse_lines::<CommandLine>(input.file_contents)?;
+pub fn no_space_left_on_device(input: PuzzleInput) -> Result<String, ParseContentsError> {
+    let command_lines = input
+        .file_contents
+        .as_str()
+        .parse_lines::<Vec<CommandLine>>()?;
     let file_system = command_lines.into_iter().collect::<Directory>();
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => {
@@ -70,7 +73,7 @@ $ ls
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("95437", output.to_string());
+        assert_eq!("95437", output);
         Ok(())
     }
 
@@ -81,7 +84,7 @@ $ ls
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("24933642", output.to_string());
+        assert_eq!("24933642", output);
         Ok(())
     }
 }

@@ -1,31 +1,33 @@
-mod common;
-mod error;
-mod lib;
 mod mapping;
+mod rps_match;
+mod scorable;
+mod strategy;
 
+use self::{scorable::Scorable, strategy::RpsStrategy};
 use crate::{
-    file::{self, FileErrorCollection},
-    input::puzzle_input::PuzzleInput,
+    contents::{convert::AsParseLines, errors::ParseContentsError},
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
-
-use self::lib::{RpsDesiredResult, RpsMatch};
-
-use crate::input::puzzle_part::PuzzlePart;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn rock_paper_scissors(input: PuzzleInput) -> Result<String, FileErrorCollection> {
-    let score = match input.puzzle_part {
-        PuzzlePart::Part1 => lib::get_tournament_score(
-            &mut file::parse_lines::<RpsMatch>(input.file_contents)?.into_iter(),
-        ),
-        PuzzlePart::Part2 => lib::get_tournament_score(
-            &mut file::parse_lines::<RpsDesiredResult>(input.file_contents)?.into_iter(),
-        ),
+pub fn rock_paper_scissors(input: PuzzleInput) -> Result<String, ParseContentsError> {
+    let strategy = input
+        .file_contents
+        .as_str()
+        .parse_lines::<Vec<RpsStrategy>>()?;
+    let interpretation = match input.puzzle_part {
+        PuzzlePart::Part1 => rps_match::match_with_target_as_type,
+        PuzzlePart::Part2 => rps_match::match_with_target_as_result,
     };
-    Ok(score.to_string())
+    let answer = strategy
+        .into_iter()
+        .map(interpretation)
+        .map(|x| x.score())
+        .sum::<i32>();
+    Ok(answer.to_string())
 }
 
 #[cfg(test)]
@@ -47,7 +49,7 @@ C Z
             puzzle_part: PuzzlePart::Part1,
         })?;
 
-        assert_eq!("15", output.to_string());
+        assert_eq!("15", output);
         Ok(())
     }
 
@@ -58,7 +60,7 @@ C Z
             puzzle_part: PuzzlePart::Part2,
         })?;
 
-        assert_eq!("12", output.to_string());
+        assert_eq!("12", output);
         Ok(())
     }
 }

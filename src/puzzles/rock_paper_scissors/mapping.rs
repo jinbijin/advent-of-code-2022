@@ -1,4 +1,5 @@
-use super::common::{RpsResult, RpsType};
+use super::rps_match::RpsResult;
+use super::strategy::RpsType;
 
 pub struct RpsMatchResultMap {
     pub opponent_choice: RpsType,

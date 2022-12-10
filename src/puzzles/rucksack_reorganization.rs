@@ -1,21 +1,22 @@
 mod lib;
 
 use crate::common::vector_chunks::AsVectorChunks;
-use crate::{
-    file::{self, FileErrorCollection},
-    input::puzzle_input::PuzzleInput,
-};
+use crate::contents::convert::AsParseLines;
+use crate::contents::errors::ParseContentsError;
+use crate::input::puzzle_input::PuzzleInput;
+use crate::input::puzzle_part::PuzzlePart;
 
 use self::lib::Rucksack;
-
-use crate::input::puzzle_part::PuzzlePart;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-pub fn rucksack_reorganization(input: PuzzleInput) -> Result<String, FileErrorCollection> {
-    let rucksacks = file::parse_lines::<Rucksack>(input.file_contents)?;
+pub fn rucksack_reorganization(input: PuzzleInput) -> Result<String, ParseContentsError> {
+    let rucksacks = input
+        .file_contents
+        .as_str()
+        .parse_lines::<Vec<Rucksack>>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => rucksacks
             .into_iter()
