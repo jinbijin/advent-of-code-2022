@@ -139,7 +139,7 @@ impl PuzzleArgs {
             puzzle_part: self.puzzle_part,
         })
         .map_err(|error| RunSolutionError::FileParseError { file_name, error })?;
-        println!("The answer is: {}", output);
+        println!("The answer is:\n{}", output);
         Ok(())
     }
 }

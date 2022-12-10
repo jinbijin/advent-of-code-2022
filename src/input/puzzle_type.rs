@@ -38,6 +38,7 @@ pub enum PuzzleType {
     NoSpaceLeftOnDevice,
     TreetopTreeHouse,
     RopeBridge,
+    CathodeRayTube,
 }
 
 impl FromStr for PuzzleType {
@@ -54,6 +55,7 @@ impl FromStr for PuzzleType {
             "no_space_left_on_device" => Ok(Self::NoSpaceLeftOnDevice),
             "treetop_tree_house" => Ok(Self::TreetopTreeHouse),
             "rope_bridge" => Ok(Self::RopeBridge),
+            "cathode_ray_tube" => Ok(Self::CathodeRayTube),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -71,6 +73,7 @@ impl PuzzleType {
             Self::NoSpaceLeftOnDevice => "no_space_left_on_device",
             Self::TreetopTreeHouse => "treetop_tree_house",
             Self::RopeBridge => "rope_bridge",
+            Self::CathodeRayTube => "cathode_ray_tube",
         }
     }
 
@@ -89,6 +92,7 @@ impl PuzzleType {
             }
             Self::TreetopTreeHouse => crate::puzzles::treetop_tree_house::treetop_tree_house,
             Self::RopeBridge => crate::puzzles::rope_bridge::rope_bridge,
+            Self::CathodeRayTube => crate::puzzles::cathode_ray_tube::cathode_ray_tube,
         }
     }
 }

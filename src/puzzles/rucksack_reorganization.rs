@@ -1,13 +1,12 @@
 mod lib;
 
-use std::vec::IntoIter;
-
+use crate::common::vector_chunks::AsVectorChunks;
 use crate::{
     file::{self, FileErrorCollection},
     input::puzzle_input::PuzzleInput,
 };
 
-use self::lib::{Rucksack, VectorChunkIterator};
+use self::lib::Rucksack;
 
 use crate::input::puzzle_part::PuzzlePart;
 
@@ -22,11 +21,11 @@ pub fn rucksack_reorganization(input: PuzzleInput) -> Result<String, FileErrorCo
             .into_iter()
             .map(|rucksack| lib::find_common_item(rucksack.compartments()).priority())
             .sum::<i32>(),
-        PuzzlePart::Part2 => VectorChunkIterator::<3, Rucksack, IntoIter<Rucksack>> {
-            iterator: &mut rucksacks.into_iter(),
-        }
-        .map(|group| lib::find_common_item(group).priority())
-        .sum::<i32>(),
+        PuzzlePart::Part2 => rucksacks
+            .into_iter()
+            .vector_chunks::<3>()
+            .map(|group| lib::find_common_item(group).priority())
+            .sum::<i32>(),
     };
 
     Ok(answer.to_string())
