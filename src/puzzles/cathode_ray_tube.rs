@@ -3,11 +3,12 @@ mod signal_change;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::contents::convert::AsParseLines;
+use self::signal_change::SignalChange;
 use crate::{
-    common::vector_chunks::AsVectorChunks, contents::errors::ParseContentsError,
-    input::puzzle_input::PuzzleInput, input::puzzle_part::PuzzlePart,
-    puzzles::cathode_ray_tube::signal_change::SignalChange,
+    common::vector_chunks::AsVectorChunks,
+    contents::{convert::AsParseLines, errors::ParseContentsError},
+    input::puzzle_input::PuzzleInput,
+    input::puzzle_part::PuzzlePart,
 };
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]

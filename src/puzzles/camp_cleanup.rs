@@ -1,11 +1,10 @@
 mod lib;
 
+use self::lib::CampAssignment;
 use crate::{
     contents::{convert::AsParseLines, errors::ParseContentsError},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
-
-use self::lib::CampAssignment;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;

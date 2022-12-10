@@ -4,12 +4,11 @@ mod file_tree;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use self::command_line::CommandLine;
-use self::file_tree::Directory;
-use crate::contents::convert::AsParseLines;
-use crate::contents::errors::ParseContentsError;
-use crate::input::puzzle_input::PuzzleInput;
-use crate::input::puzzle_part::PuzzlePart;
+use self::{command_line::CommandLine, file_tree::Directory};
+use crate::{
+    contents::{convert::AsParseLines, errors::ParseContentsError},
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+};
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn no_space_left_on_device(input: PuzzleInput) -> Result<String, ParseContentsError> {

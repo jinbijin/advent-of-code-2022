@@ -3,9 +3,10 @@ use std::collections::{HashSet, VecDeque};
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::contents::errors::ParseContentsError;
-use crate::input::puzzle_input::PuzzleInput;
-use crate::input::puzzle_part::PuzzlePart;
+use crate::{
+    contents::errors::ParseContentsError,
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+};
 
 fn deque_marks_start(deque: &VecDeque<char>, marker_len: usize) -> bool {
     let mut hash_set: HashSet<char> = HashSet::new();

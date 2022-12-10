@@ -1,12 +1,11 @@
 mod lib;
 
-use crate::common::vector_chunks::AsVectorChunks;
-use crate::contents::convert::AsParseLines;
-use crate::contents::errors::ParseContentsError;
-use crate::input::puzzle_input::PuzzleInput;
-use crate::input::puzzle_part::PuzzlePart;
-
 use self::lib::Rucksack;
+use crate::{
+    common::vector_chunks::AsVectorChunks,
+    contents::{convert::AsParseLines, errors::ParseContentsError},
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+};
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;

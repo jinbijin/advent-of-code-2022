@@ -5,13 +5,12 @@ use std::{collections::HashMap, str::Lines};
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+use self::supply_input_line::{ParseSupplyInputIterator, SupplyInputLine};
 use crate::{
     contents::errors::ParseContentsError,
     file::{FileErrorCollection, FileParseResult},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
-
-use self::supply_input_line::{ParseSupplyInputIterator, SupplyInputLine};
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn supply_stacks(input: PuzzleInput) -> Result<String, ParseContentsError> {
