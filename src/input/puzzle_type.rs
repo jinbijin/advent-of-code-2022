@@ -40,6 +40,7 @@ pub enum PuzzleType {
     RopeBridge,
     CathodeRayTube,
     MonkeyInTheMiddle,
+    HillClimbingAlgorithm,
 }
 
 impl FromStr for PuzzleType {
@@ -58,6 +59,7 @@ impl FromStr for PuzzleType {
             "rope_bridge" => Ok(Self::RopeBridge),
             "cathode_ray_tube" => Ok(Self::CathodeRayTube),
             "monkey_in_the_middle" => Ok(Self::MonkeyInTheMiddle),
+            "hill_climbing_algorithm" => Ok(Self::HillClimbingAlgorithm),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -77,6 +79,7 @@ impl PuzzleType {
             Self::RopeBridge => "rope_bridge",
             Self::CathodeRayTube => "cathode_ray_tube",
             Self::MonkeyInTheMiddle => "monkey_in_the_middle",
+            Self::HillClimbingAlgorithm => "hill_climbing_algorithm",
         }
     }
 
@@ -97,6 +100,9 @@ impl PuzzleType {
             Self::RopeBridge => crate::puzzles::rope_bridge::rope_bridge,
             Self::CathodeRayTube => crate::puzzles::cathode_ray_tube::cathode_ray_tube,
             Self::MonkeyInTheMiddle => crate::puzzles::monkey_in_the_middle::monkey_in_the_middle,
+            Self::HillClimbingAlgorithm => {
+                crate::puzzles::hill_climbing_algorithm::hill_climbing_algorithm
+            }
         }
     }
 }
