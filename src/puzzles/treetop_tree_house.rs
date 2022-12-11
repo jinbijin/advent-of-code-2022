@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 
 use self::digit_grid::{Coordinates, DigitGrid};
 use crate::{
-    contents::errors::ParseContentsError,
+    contents::convert::contents::ParseContentsError,
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 
 use self::{command_line::CommandLine, file_tree::Directory};
 use crate::{
-    contents::{convert::AsParseLines, errors::ParseContentsError},
+    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

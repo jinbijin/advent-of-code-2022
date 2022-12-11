@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 
 use self::rope_motion::{Direction, RopeMotion, RopePosition, RopePositionCollector};
 use crate::{
-    contents::{convert::AsParseLines, errors::ParseContentsError},
+    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

@@ -9,7 +9,7 @@ use std::{
     fs, io,
 };
 
-use crate::{contents::errors::ParseContentsError, input::puzzle_input::PuzzleInput};
+use crate::{contents::convert::contents::ParseContentsError, input::puzzle_input::PuzzleInput};
 
 use self::{
     match_args::{MatchArgs, MatchArgsError, MatchArgsIterator},

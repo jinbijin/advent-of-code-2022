@@ -3,17 +3,15 @@ use std::{
     fmt::{self, Debug, Display, Formatter},
 };
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
-use crate::contents::errors::{ParseContentsError, ParseLineError, ParseSectionError};
+use crate::contents::convert::contents::ParseContentsError;
+use crate::contents::convert::lines::ParseLineError;
+use crate::contents::convert::sections::ParseSectionError;
 
 struct FileErrorWithLine {
     line: usize,
     error_description: String,
 }
 
-#[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub struct FileErrorCollection(Vec<FileErrorWithLine>);
 
 impl Display for FileErrorCollection {
@@ -40,15 +38,6 @@ impl Debug for FileErrorCollection {
 }
 
 impl Error for FileErrorCollection {}
-
-#[cfg(feature = "wasm")]
-#[wasm_bindgen]
-impl FileErrorCollection {
-    #[wasm_bindgen]
-    pub fn display(&self) -> String {
-        self.to_string()
-    }
-}
 
 pub enum FileParseResult<T> {
     FileOk(Vec<T>),
@@ -101,7 +90,7 @@ impl From<FileErrorCollection> for ParseContentsError {
                  }| { ParseLineError::new(line, error_description) },
             )
             .collect::<Vec<ParseLineError>>();
-        let section_error = ParseSectionError::new(0, 0, line_errors);
+        let section_error = ParseSectionError::new(0, 0, line_errors, None);
         ParseContentsError::new(vec![section_error])
     }
 }

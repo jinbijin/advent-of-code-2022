@@ -2,7 +2,7 @@ mod lib;
 
 use self::lib::CampAssignment;
 use crate::{
-    contents::{convert::AsParseLines, errors::ParseContentsError},
+    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

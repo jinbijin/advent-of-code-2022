@@ -1,11 +1,17 @@
+mod divisor;
+mod if_false_throw_to;
+mod if_true_throw_to;
 mod monkey;
+mod monkey_name;
+mod operation;
+mod starting_items;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
 use self::monkey::MonkeyCollection;
 use crate::{
-    contents::{convert::AsParseContents, errors::ParseContentsError},
+    contents::convert::contents::{AsParseContents, ParseContentsError},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

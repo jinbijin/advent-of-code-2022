@@ -5,7 +5,7 @@ mod strategy;
 
 use self::{scorable::Scorable, strategy::RpsStrategy};
 use crate::{
-    contents::{convert::AsParseLines, errors::ParseContentsError},
+    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

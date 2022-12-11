@@ -2,7 +2,7 @@
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    contents::{convert::AsParseContents, errors::ParseContentsError},
+    contents::convert::contents::{AsParseContents, ParseContentsError},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

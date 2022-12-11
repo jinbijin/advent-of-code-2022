@@ -3,7 +3,7 @@ mod lib;
 use self::lib::Rucksack;
 use crate::{
     common::vector_chunks::AsVectorChunks,
-    contents::{convert::AsParseLines, errors::ParseContentsError},
+    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 

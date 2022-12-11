@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 
 use self::supply_input_line::{ParseSupplyInputIterator, SupplyInputLine};
 use crate::{
-    contents::errors::ParseContentsError,
+    contents::convert::contents::ParseContentsError,
     file::{FileErrorCollection, FileParseResult},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };

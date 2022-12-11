@@ -1,12 +1,134 @@
 use std::{
     collections::{HashMap, VecDeque},
-    num::ParseIntError,
+    error::Error,
+    fmt::{self, Debug, Display, Formatter},
 };
 
-use crate::contents::{
-    convert::{AsParseSections, FromContents, FromSection},
-    errors::{self, ParseLineError},
+use crate::contents::convert::{
+    contents::{FromContents, ParseContentsError},
+    lines::AsParseLine,
+    sections::{AsParseSections, CustomSectionError, FromSection},
 };
+
+use super::{
+    divisor::{Divisor, ParseDivisorError},
+    if_false_throw_to::{IfFalseThrowTo, ParseIfFalseThrowToError},
+    if_true_throw_to::{IfTrueThrowTo, ParseIfTrueThrowToError},
+    monkey_name::{MonkeyName, ParseMonkeyNameError},
+    operation::{Operation, ParseOperationError},
+    starting_items::{ParseStartingItemsError, StartingItems},
+};
+
+pub enum ParseMonkeyError {
+    InvalidMonkeyNameFormat(String),
+    InvalidStartingItemFormat(String),
+    InvalidStartingItem(String),
+    InvalidOperationFormat(String),
+    InvalidOperationKind(String),
+    InvalidOperationArgument(String),
+    InvalidDivisorFormat(String),
+    InvalidIfFalseThrowToFormat(String),
+    InvalidIfTrueThrowToFormat(String),
+    UnexpectedEndOfLine(String),
+}
+
+impl Display for ParseMonkeyError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidMonkeyNameFormat(value) => {
+                write!(f, "invalid monkey name format for '{}'", value)
+            }
+            Self::InvalidStartingItemFormat(value) => {
+                write!(f, "invalid starting item format for '{}'", value)
+            }
+            Self::InvalidStartingItem(value) => write!(f, "invalid starting item '{}'", value),
+            Self::InvalidOperationFormat(value) => {
+                write!(f, "invalid operation format for '{}'", value)
+            }
+            Self::InvalidOperationKind(value) => write!(f, "invalid operation kind '{}'", value),
+            Self::InvalidOperationArgument(value) => {
+                write!(f, "invalid operation argument '{}'", value)
+            }
+            Self::InvalidDivisorFormat(value) => write!(f, "invalid test format for '{}'", value),
+            Self::InvalidIfTrueThrowToFormat(value) => {
+                write!(f, "invalid if true throw to format for '{}'", value)
+            }
+            Self::InvalidIfFalseThrowToFormat(value) => {
+                write!(f, "invalid if false throw to format for '{}'", value)
+            }
+            Self::UnexpectedEndOfLine(while_reading) => write!(
+                f,
+                "unexpected end of section while reading '{}'",
+                while_reading
+            ),
+        }
+    }
+}
+
+impl Debug for ParseMonkeyError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        <Self as Display>::fmt(&self, f)
+    }
+}
+
+impl Error for ParseMonkeyError {}
+
+impl CustomSectionError for ParseMonkeyError {}
+
+impl From<ParseMonkeyNameError> for ParseMonkeyError {
+    fn from(err: ParseMonkeyNameError) -> Self {
+        match err {
+            ParseMonkeyNameError::InvalidFormat(value) => Self::InvalidMonkeyNameFormat(value),
+        }
+    }
+}
+
+impl From<ParseStartingItemsError> for ParseMonkeyError {
+    fn from(err: ParseStartingItemsError) -> Self {
+        match err {
+            ParseStartingItemsError::InvalidFormat(value) => Self::InvalidStartingItemFormat(value),
+            ParseStartingItemsError::InvalidItem(value) => Self::InvalidStartingItem(value),
+        }
+    }
+}
+
+impl From<ParseOperationError> for ParseMonkeyError {
+    fn from(err: ParseOperationError) -> Self {
+        match err {
+            ParseOperationError::InvalidArgument(value) => Self::InvalidOperationArgument(value),
+            ParseOperationError::InvalidFormat(value) => Self::InvalidOperationFormat(value),
+            ParseOperationError::InvalidOperationKind(value) => Self::InvalidOperationKind(value),
+        }
+    }
+}
+
+impl From<ParseDivisorError> for ParseMonkeyError {
+    fn from(err: ParseDivisorError) -> Self {
+        match err {
+            ParseDivisorError::InvalidFormat(value) => Self::InvalidDivisorFormat(value),
+        }
+    }
+}
+
+impl From<ParseIfTrueThrowToError> for ParseMonkeyError {
+    fn from(err: ParseIfTrueThrowToError) -> Self {
+        match err {
+            ParseIfTrueThrowToError::InvalidFormat(value) => {
+                Self::InvalidIfTrueThrowToFormat(value)
+            }
+        }
+    }
+}
+
+impl From<ParseIfFalseThrowToError> for ParseMonkeyError {
+    fn from(err: ParseIfFalseThrowToError) -> Self {
+        match err {
+            ParseIfFalseThrowToError::InvalidFormat(value) => {
+                Self::InvalidIfFalseThrowToFormat(value)
+            }
+        }
+    }
+}
 
 pub struct MonkeyItem {
     worry_level: usize,
@@ -52,130 +174,68 @@ impl Monkey {
 }
 
 impl FromSection for (String, Monkey) {
-    type Err = Vec<ParseLineError>; // Needed for now because of implementation of FromSections, TODO use own error type
+    type Err = ParseMonkeyError;
 
     fn from_section(s: &str) -> Result<Self, Self::Err> {
         let mut lines = s.lines();
 
         let monkey_key = match lines.next() {
-            Some(line) => {
-                let expected_line_start = "Monkey ";
-                if line.starts_with(expected_line_start) && line.ends_with(":") {
-                    Ok(line[(expected_line_start.len())..(line.len() - 1)].to_string())
-                } else {
-                    Err(vec![ParseLineError::new(
-                        0,
-                        "invalid format for monkey".to_string(),
-                    )])
-                }
-            }
-            None => Err(vec![ParseLineError::new(0, "expected monkey".to_string())]),
+            Some(line) => match line.parse_line::<MonkeyName>() {
+                Ok(MonkeyName(monkey_name)) => Ok(monkey_name),
+                Err(err) => Err(err.into()),
+            },
+            None => Err(ParseMonkeyError::UnexpectedEndOfLine(format!(
+                "monkey name"
+            ))),
         }?;
 
         let items = match lines.next() {
-            Some(line) => {
-                let expected_line_start = "  Starting items: ";
-                if line.starts_with(expected_line_start) {
-                    line[(expected_line_start.len())..]
-                        .split(", ")
-                        .map(|item| {
-                            item.parse::<usize>()
-                                .map(|worry_level| MonkeyItem { worry_level })
-                        })
-                        .collect::<Result<VecDeque<MonkeyItem>, ParseIntError>>()
-                        .map_err(|_| {
-                            vec![ParseLineError::new(
-                                1,
-                                "invalid number found in starting items".to_string(),
-                            )]
-                        })
-                } else {
-                    Err(vec![ParseLineError::new(
-                        1,
-                        "invalid format for starting items".to_string(),
-                    )])
-                }
-            }
-            None => Err(vec![ParseLineError::new(
-                1,
-                "expected starting items".to_string(),
-            )]),
+            Some(line) => match line.parse_line::<StartingItems>() {
+                Ok(StartingItems(items)) => Ok(items
+                    .into_iter()
+                    .map(|worry_level| MonkeyItem { worry_level })
+                    .collect::<VecDeque<MonkeyItem>>()),
+                Err(err) => Err(err.into()),
+            },
+            None => Err(ParseMonkeyError::UnexpectedEndOfLine(format!(
+                "starting items"
+            ))),
         }?;
 
         let operation = match lines.next() {
-            Some(line) => {
-                let expected_line_start = "  Operation: new = ";
-                if line.starts_with(expected_line_start) {
-                    let parts = line[(expected_line_start.len())..]
-                        .split(' ')
-                        .collect::<Vec<&str>>();
-                    if parts.len() == 3 {
-                        parse_expression(parts[0], parts[1], parts[2])
-                            .map_err(|err| vec![ParseLineError::new(2, err)])
-                    } else {
-                        Err(vec![ParseLineError::new(
-                            2,
-                            "invalid format for operation".to_string(),
-                        )])
-                    }
-                } else {
-                    Err(vec![ParseLineError::new(
-                        2,
-                        "invalid format for operation".to_string(),
-                    )])
-                }
-            }
-            None => Err(vec![ParseLineError::new(
-                2,
-                "expected operation".to_string(),
-            )]),
+            Some(line) => match line.parse_line::<Operation>() {
+                Ok(operation) => Ok(operation.as_fn()),
+                Err(err) => Err(err.into()),
+            },
+            None => Err(ParseMonkeyError::UnexpectedEndOfLine(format!("operation"))),
         }?;
 
         let divisor = match lines.next() {
-            Some(line) => {
-                let expected_line_start = "  Test: divisible by ";
-                if line.starts_with(expected_line_start) {
-                    line[(expected_line_start.len())..]
-                        .parse::<usize>()
-                        .map_err(|_| vec![ParseLineError::new(3, "invalid divisor".to_string())])
-                } else {
-                    Err(vec![ParseLineError::new(
-                        3,
-                        "invalid format for test".to_string(),
-                    )])
-                }
-            }
-            None => Err(vec![ParseLineError::new(3, "expected test".to_string())]),
+            Some(line) => match line.parse_line::<Divisor>() {
+                Ok(Divisor(divisor)) => Ok(divisor),
+                Err(err) => Err(err.into()),
+            },
+            None => Err(ParseMonkeyError::UnexpectedEndOfLine(format!("test"))),
         }?;
 
         let throw_to_if_true = match lines.next() {
-            Some(line) => {
-                let expected_line_start = "    If true: throw to monkey ";
-                if line.starts_with(expected_line_start) {
-                    Ok(line[(expected_line_start.len())..].to_string())
-                } else {
-                    Err(vec![ParseLineError::new(
-                        4,
-                        "invalid format for if true".to_string(),
-                    )])
-                }
-            }
-            None => Err(vec![ParseLineError::new(4, "expected if true".to_string())]),
+            Some(line) => match line.parse_line::<IfTrueThrowTo>() {
+                Ok(IfTrueThrowTo(name)) => Ok(name),
+                Err(err) => Err(err.into()),
+            },
+            None => Err(ParseMonkeyError::UnexpectedEndOfLine(format!(
+                "throw to if true"
+            ))),
         }?;
 
         let throw_to_if_false = match lines.next() {
-            Some(line) => {
-                let expected_line_start = "    If false: throw to monkey ";
-                if line.starts_with(expected_line_start) {
-                    Ok(line[(expected_line_start.len())..].to_string())
-                } else {
-                    Err(vec![ParseLineError::new(
-                        5,
-                        "invalid format for if false".to_string(),
-                    )])
-                }
-            }
-            None => Err(vec![ParseLineError::new(5, "expected if true".to_string())]),
+            Some(line) => match line.parse_line::<IfFalseThrowTo>() {
+                Ok(IfFalseThrowTo(name)) => Ok(name),
+                Err(err) => Err(err.into()),
+            },
+            None => Err(ParseMonkeyError::UnexpectedEndOfLine(format!(
+                "throw to if false"
+            ))),
         }?;
 
         Ok((
@@ -246,7 +306,7 @@ impl MonkeyCollection {
 }
 
 impl FromContents for MonkeyCollection {
-    fn from_contents(s: &str) -> Result<Self, errors::ParseContentsError> {
+    fn from_contents(s: &str) -> Result<Self, ParseContentsError> {
         let monkeys_with_keys = s.parse_sections::<Vec<(String, Monkey)>>()?;
         let mut monkey_keys: Vec<String> = Vec::new();
         let mut monkeys: HashMap<String, Monkey> = HashMap::new();
@@ -261,45 +321,4 @@ impl FromContents for MonkeyCollection {
             monkeys,
         })
     }
-}
-
-fn parse_expression(lhs: &str, op: &str, rhs: &str) -> Result<Box<dyn Fn(usize) -> usize>, String> {
-    if lhs == "old" && rhs == "old" {
-        if op == "*" {
-            return Ok(Box::new(move |x| x * x));
-        } else if op == "+" {
-            return Ok(Box::new(move |x| x + x));
-        }
-    } else if lhs == "old" {
-        let rhs = rhs
-            .parse::<usize>()
-            .map_err(|_| "cannot parse rhs".to_string())?;
-        if op == "*" {
-            return Ok(Box::new(move |x| x * rhs));
-        } else if op == "+" {
-            return Ok(Box::new(move |x| x + rhs));
-        }
-    } else if rhs == "old" {
-        let lhs = lhs
-            .parse::<usize>()
-            .map_err(|_| "cannot parse lhs".to_string())?;
-        if op == "*" {
-            return Ok(Box::new(move |x| lhs * x));
-        } else if op == "+" {
-            return Ok(Box::new(move |x| lhs + x));
-        }
-    } else {
-        let lhs = lhs
-            .parse::<usize>()
-            .map_err(|_| "cannot parse lhs".to_string())?;
-        let rhs = rhs
-            .parse::<usize>()
-            .map_err(|_| "cannot parse rhs".to_string())?;
-        if op == "*" {
-            return Ok(Box::new(move |_| lhs * rhs));
-        } else if op == "+" {
-            return Ok(Box::new(move |_| lhs + rhs));
-        }
-    }
-    Err("cannot parse operation".to_string())
 }

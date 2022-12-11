@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 use self::signal_change::SignalChange;
 use crate::{
     common::vector_chunks::AsVectorChunks,
-    contents::{convert::AsParseLines, errors::ParseContentsError},
+    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
     input::puzzle_input::PuzzleInput,
     input::puzzle_part::PuzzlePart,
 };
