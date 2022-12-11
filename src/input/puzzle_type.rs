@@ -39,6 +39,7 @@ pub enum PuzzleType {
     TreetopTreeHouse,
     RopeBridge,
     CathodeRayTube,
+    MonkeyInTheMiddle,
 }
 
 impl FromStr for PuzzleType {
@@ -56,6 +57,7 @@ impl FromStr for PuzzleType {
             "treetop_tree_house" => Ok(Self::TreetopTreeHouse),
             "rope_bridge" => Ok(Self::RopeBridge),
             "cathode_ray_tube" => Ok(Self::CathodeRayTube),
+            "monkey_in_the_middle" => Ok(Self::MonkeyInTheMiddle),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -74,6 +76,7 @@ impl PuzzleType {
             Self::TreetopTreeHouse => "treetop_tree_house",
             Self::RopeBridge => "rope_bridge",
             Self::CathodeRayTube => "cathode_ray_tube",
+            Self::MonkeyInTheMiddle => "monkey_in_the_middle",
         }
     }
 
@@ -93,6 +96,7 @@ impl PuzzleType {
             Self::TreetopTreeHouse => crate::puzzles::treetop_tree_house::treetop_tree_house,
             Self::RopeBridge => crate::puzzles::rope_bridge::rope_bridge,
             Self::CathodeRayTube => crate::puzzles::cathode_ray_tube::cathode_ray_tube,
+            Self::MonkeyInTheMiddle => crate::puzzles::monkey_in_the_middle::monkey_in_the_middle,
         }
     }
 }

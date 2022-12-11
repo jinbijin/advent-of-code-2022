@@ -101,6 +101,12 @@ impl Display for ParseLineError {
     }
 }
 
+impl From<Vec<ParseSectionError>> for ParseContentsError {
+    fn from(section_errors: Vec<ParseSectionError>) -> Self {
+        ParseContentsError { section_errors }
+    }
+}
+
 impl From<Vec<ParseLineError>> for ParseContentsError {
     fn from(line_errors: Vec<ParseLineError>) -> Self {
         ParseContentsError {

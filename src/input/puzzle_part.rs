@@ -27,7 +27,7 @@ impl Debug for ParsePuzzlePartError {
 impl Error for ParsePuzzlePartError {}
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum PuzzlePart {
     Part1,
     Part2,
