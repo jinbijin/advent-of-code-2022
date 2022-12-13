@@ -5,9 +5,8 @@ use std::{
 };
 
 use crate::contents::convert::{
-    contents::{FromContents, ParseContentsError},
-    lines::AsParseLine,
-    sections::{AsParseSections, CustomSectionError, FromSection},
+    contents::{AsParseSections, FromContents, ParseContentsError},
+    sections::{CustomSectionError, FromLines},
 };
 
 use super::{
@@ -173,14 +172,14 @@ impl Monkey {
     }
 }
 
-impl FromSection for (String, Monkey) {
+impl FromLines for (String, Monkey) {
     type Err = ParseMonkeyError;
 
-    fn from_section(s: &str) -> Result<Self, Self::Err> {
+    fn from_lines(s: &str) -> Result<Self, Self::Err> {
         let mut lines = s.lines();
 
         let monkey_key = match lines.next() {
-            Some(line) => match line.parse_line::<MonkeyName>() {
+            Some(line) => match line.parse::<MonkeyName>() {
                 Ok(MonkeyName(monkey_name)) => Ok(monkey_name),
                 Err(err) => Err(err.into()),
             },
@@ -190,7 +189,7 @@ impl FromSection for (String, Monkey) {
         }?;
 
         let items = match lines.next() {
-            Some(line) => match line.parse_line::<StartingItems>() {
+            Some(line) => match line.parse::<StartingItems>() {
                 Ok(StartingItems(items)) => Ok(items
                     .into_iter()
                     .map(|worry_level| MonkeyItem { worry_level })
@@ -203,7 +202,7 @@ impl FromSection for (String, Monkey) {
         }?;
 
         let operation = match lines.next() {
-            Some(line) => match line.parse_line::<Operation>() {
+            Some(line) => match line.parse::<Operation>() {
                 Ok(operation) => Ok(operation.as_fn()),
                 Err(err) => Err(err.into()),
             },
@@ -211,7 +210,7 @@ impl FromSection for (String, Monkey) {
         }?;
 
         let divisor = match lines.next() {
-            Some(line) => match line.parse_line::<Divisor>() {
+            Some(line) => match line.parse::<Divisor>() {
                 Ok(Divisor(divisor)) => Ok(divisor),
                 Err(err) => Err(err.into()),
             },
@@ -219,7 +218,7 @@ impl FromSection for (String, Monkey) {
         }?;
 
         let throw_to_if_true = match lines.next() {
-            Some(line) => match line.parse_line::<IfTrueThrowTo>() {
+            Some(line) => match line.parse::<IfTrueThrowTo>() {
                 Ok(IfTrueThrowTo(name)) => Ok(name),
                 Err(err) => Err(err.into()),
             },
@@ -229,7 +228,7 @@ impl FromSection for (String, Monkey) {
         }?;
 
         let throw_to_if_false = match lines.next() {
-            Some(line) => match line.parse_line::<IfFalseThrowTo>() {
+            Some(line) => match line.parse::<IfFalseThrowTo>() {
                 Ok(IfFalseThrowTo(name)) => Ok(name),
                 Err(err) => Err(err.into()),
             },

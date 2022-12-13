@@ -3,7 +3,7 @@ use std::{
     fmt::{self, Debug, Display, Formatter},
 };
 
-use crate::contents::convert::sections::{CustomSectionError, FromSection};
+use crate::contents::convert::sections::{CustomSectionError, FromLines};
 
 enum Direction {
     Up,
@@ -216,10 +216,10 @@ impl ElevationGrid {
     }
 }
 
-impl FromSection for ElevationGrid {
+impl FromLines for ElevationGrid {
     type Err = ParseElevationGridError;
 
-    fn from_section(s: &str) -> Result<Self, Self::Err> {
+    fn from_lines(s: &str) -> Result<Self, Self::Err> {
         let lines = s.lines().collect::<Vec<&str>>();
         let height = lines.len();
         if height == 0 {

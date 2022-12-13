@@ -4,8 +4,8 @@ use std::{
 };
 
 use crate::contents::convert::contents::ParseContentsError;
-use crate::contents::convert::lines::ParseLineError;
-use crate::contents::convert::sections::ParseSectionError;
+use crate::contents::convert::sections::ParseLineError;
+use crate::contents::convert::sections::ParseSectionItemError;
 
 struct FileErrorWithLine {
     line: usize,
@@ -90,7 +90,7 @@ impl From<FileErrorCollection> for ParseContentsError {
                  }| { ParseLineError::new(line, error_description) },
             )
             .collect::<Vec<ParseLineError>>();
-        let section_error = ParseSectionError::new(0, 0, line_errors, None);
+        let section_error = ParseSectionItemError::new(0, 0, line_errors.into());
         ParseContentsError::new(vec![section_error])
     }
 }

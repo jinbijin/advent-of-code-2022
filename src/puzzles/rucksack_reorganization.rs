@@ -3,7 +3,7 @@ mod lib;
 use self::lib::Rucksack;
 use crate::{
     common::vector_chunks::AsVectorChunks,
-    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
+    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
@@ -12,10 +12,10 @@ use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn rucksack_reorganization(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let rucksacks = input
+    let SingleSection(rucksacks) = input
         .file_contents
         .as_str()
-        .parse_lines::<Vec<Rucksack>>()?;
+        .parse_contents::<SingleSection<Vec<Rucksack>>>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => rucksacks
             .into_iter()

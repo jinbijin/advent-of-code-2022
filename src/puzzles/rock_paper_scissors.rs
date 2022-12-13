@@ -5,7 +5,7 @@ mod strategy;
 
 use self::{scorable::Scorable, strategy::RpsStrategy};
 use crate::{
-    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
+    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
@@ -14,10 +14,10 @@ use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn rock_paper_scissors(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let strategy = input
+    let SingleSection(strategy) = input
         .file_contents
         .as_str()
-        .parse_lines::<Vec<RpsStrategy>>()?;
+        .parse_contents::<SingleSection<Vec<RpsStrategy>>>()?;
     let interpretation = match input.puzzle_part {
         PuzzlePart::Part1 => rps_match::match_with_target_as_type,
         PuzzlePart::Part2 => rps_match::match_with_target_as_result,

@@ -4,7 +4,7 @@ mod elevation_grid;
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError},
+    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
@@ -16,11 +16,10 @@ pub fn hill_climbing_algorithm(input: PuzzleInput) -> Result<String, ParseConten
         PuzzlePart::Part1 => TransversalMode::FromStart,
         PuzzlePart::Part2 => TransversalMode::FromLowest,
     };
-    let elevation_grids = input
+    let SingleSection(elevation_grid) = input
         .file_contents
         .as_str()
-        .parse_contents::<Vec<ElevationGrid>>()?;
-    let elevation_grid = &elevation_grids[0];
+        .parse_contents::<SingleSection<ElevationGrid>>()?;
     let mut transverser = elevation_grid.start_transversal(transversal_mode);
     let mut result = transverser.step();
     while ElevationGridTransversalResult::Continue == result {

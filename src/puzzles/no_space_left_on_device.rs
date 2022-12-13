@@ -6,16 +6,16 @@ use wasm_bindgen::prelude::*;
 
 use self::{command_line::CommandLine, file_tree::Directory};
 use crate::{
-    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
+    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn no_space_left_on_device(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let command_lines = input
+    let SingleSection(command_lines) = input
         .file_contents
         .as_str()
-        .parse_lines::<Vec<CommandLine>>()?;
+        .parse_contents::<SingleSection<Vec<CommandLine>>>()?;
     let file_system = command_lines.into_iter().collect::<Directory>();
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => {

@@ -1,15 +1,12 @@
-use super::{
-    super::sections::AsSections,
-    lines::{AsParseLines, FromLines, ParseLineError},
-};
 use std::{
     error::Error,
     fmt::{self, Display, Formatter},
+    str::FromStr,
 };
 
 trait SectionError {
     fn line_errors(&self) -> Vec<ParseLineError>;
-    fn section_error_description(&self) -> Option<String>;
+    fn error_description(&self) -> Option<String>;
 }
 
 pub trait CustomSectionError: Error {}
@@ -22,7 +19,7 @@ where
         Vec::new()
     }
 
-    fn section_error_description(&self) -> Option<String> {
+    fn error_description(&self) -> Option<String> {
         Some(self.to_string())
     }
 }
@@ -32,44 +29,20 @@ impl SectionError for Vec<ParseLineError> {
         self.clone()
     }
 
-    fn section_error_description(&self) -> Option<String> {
+    fn error_description(&self) -> Option<String> {
         None
     }
 }
 
+#[derive(Clone)]
 pub struct ParseSectionError {
-    section: usize,
-    first_line: usize,
+    error_description: Option<String>,
     line_errors: Vec<ParseLineError>,
-    section_error_description: Option<String>,
-}
-
-// TODO remove constructor
-impl ParseSectionError {
-    pub fn new(
-        section: usize,
-        first_line: usize,
-        line_errors: Vec<ParseLineError>,
-        section_error_description: Option<String>,
-    ) -> ParseSectionError {
-        ParseSectionError {
-            section,
-            first_line,
-            line_errors,
-            section_error_description,
-        }
-    }
 }
 
 impl Display for ParseSectionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        writeln!(
-            f,
-            "In section {} at line {}:",
-            self.section + 1,
-            self.first_line + 1
-        )?;
-        if let Some(error_description) = &self.section_error_description {
+        if let Some(error_description) = &self.error_description {
             writeln!(f, "{}", error_description)?;
         }
         for line_error in self.line_errors.iter() {
@@ -79,31 +52,74 @@ impl Display for ParseSectionError {
     }
 }
 
-pub trait FromSection: Sized {
-    type Err;
+impl From<Vec<ParseLineError>> for ParseSectionError {
+    fn from(line_errors: Vec<ParseLineError>) -> Self {
+        ParseSectionError {
+            error_description: None,
+            line_errors,
+        }
+    }
+}
 
-    fn from_section(s: &str) -> Result<Self, Self::Err>;
+#[derive(Clone)]
+pub struct ParseSectionItemError {
+    section: usize,
+    first_line: usize,
+    section_error: ParseSectionError,
+}
+
+// TODO remove constructor
+impl ParseSectionItemError {
+    pub fn new(
+        section: usize,
+        first_line: usize,
+        section_error: ParseSectionError,
+    ) -> ParseSectionItemError {
+        ParseSectionItemError {
+            section,
+            first_line,
+            section_error,
+        }
+    }
+}
+
+impl Display for ParseSectionItemError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "In section {} at line {}:",
+            self.section + 1,
+            self.first_line + 1
+        )?;
+        self.section_error.fmt(f)
+    }
+}
+
+pub trait FromSection: Sized {
+    fn from_section(s: &str) -> Result<Self, ParseSectionError>;
 }
 
 impl<T> FromSection for T
 where
     T: FromLines,
+    T::Err: SectionError,
 {
-    type Err = Vec<ParseLineError>;
-
-    fn from_section(s: &str) -> Result<Self, Self::Err> {
-        s.parse_lines::<Self>()
+    fn from_section(s: &str) -> Result<Self, ParseSectionError> {
+        s.parse_lines::<Self>().map_err(|err| ParseSectionError {
+            error_description: err.error_description(),
+            line_errors: err.line_errors(),
+        })
     }
 }
 
 pub trait AsParseSection {
-    fn parse_section<T>(&self) -> Result<T, T::Err>
+    fn parse_section<T>(&self) -> Result<T, ParseSectionError>
     where
         T: FromSection;
 }
 
 impl AsParseSection for &str {
-    fn parse_section<T>(&self) -> Result<T, T::Err>
+    fn parse_section<T>(&self) -> Result<T, ParseSectionError>
     where
         T: FromSection,
     {
@@ -111,40 +127,55 @@ impl AsParseSection for &str {
     }
 }
 
-pub trait FromSections: Sized {
-    fn from_sections(s: &str) -> Result<Self, Vec<ParseSectionError>>;
+#[derive(Clone)]
+pub struct ParseLineError {
+    line: usize,
+    error_description: String,
 }
 
-impl<T> FromSections for Vec<T>
+// TODO remove constructor
+impl ParseLineError {
+    pub fn new(line: usize, error_description: String) -> ParseLineError {
+        ParseLineError {
+            line,
+            error_description,
+        }
+    }
+}
+
+impl Display for ParseLineError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Line {}: {}", self.line + 1, self.error_description)
+    }
+}
+
+pub trait FromLines: Sized {
+    type Err;
+
+    fn from_lines(s: &str) -> Result<Self, Self::Err>;
+}
+
+impl<T> FromLines for Vec<T>
 where
-    T: FromSection,
-    T::Err: SectionError,
+    T: FromStr,
+    T::Err: Display,
 {
-    fn from_sections(s: &str) -> Result<Self, Vec<ParseSectionError>> {
-        let mut error_collection: Vec<ParseSectionError> = Vec::new();
+    type Err = Vec<ParseLineError>;
+
+    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+        let mut error_collection: Vec<ParseLineError> = Vec::new();
         let mut results: Vec<T> = Vec::new();
 
-        let line_results = s
-            .sections()
-            .map(|section| {
-                (
-                    section.starts_at_line,
-                    section.contents.parse_section::<T>(),
-                )
-            })
-            .enumerate();
-        for (index, (section_start, line_result)) in line_results {
+        let line_results = s.lines().map(|line| line.parse::<T>()).enumerate();
+        for (index, line_result) in line_results {
             match line_result {
                 Ok(result) => results.push(result),
-                Err(err) => error_collection.push(ParseSectionError::new(
-                    index,
-                    section_start,
-                    err.line_errors(),
-                    err.section_error_description(),
-                )),
+                Err(error) => error_collection.push(ParseLineError {
+                    line: index,
+                    error_description: error.to_string(),
+                }),
             }
         }
-
         if error_collection.len() > 0 {
             Err(error_collection)
         } else {
@@ -153,17 +184,17 @@ where
     }
 }
 
-pub trait AsParseSections {
-    fn parse_sections<T>(&self) -> Result<T, Vec<ParseSectionError>>
+trait AsParseLines {
+    fn parse_lines<T>(&self) -> Result<T, T::Err>
     where
-        T: FromSections;
+        T: FromLines;
 }
 
-impl AsParseSections for &str {
-    fn parse_sections<T>(&self) -> Result<T, Vec<ParseSectionError>>
+impl AsParseLines for &str {
+    fn parse_lines<T>(&self) -> Result<T, T::Err>
     where
-        T: FromSections,
+        T: FromLines,
     {
-        T::from_sections(self)
+        T::from_lines(self)
     }
 }

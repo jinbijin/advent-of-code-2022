@@ -2,7 +2,7 @@ mod lib;
 
 use self::lib::CampAssignment;
 use crate::{
-    contents::convert::{contents::ParseContentsError, lines::AsParseLines},
+    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
@@ -11,10 +11,10 @@ use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn camp_cleanup(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let camp_assignments = input
+    let SingleSection(camp_assignments) = input
         .file_contents
         .as_str()
-        .parse_lines::<Vec<CampAssignment>>()?;
+        .parse_contents::<SingleSection<Vec<CampAssignment>>>()?;
     let answer = camp_assignments
         .iter()
         .filter(|camp_assignment| match input.puzzle_part {
