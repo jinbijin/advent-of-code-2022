@@ -42,6 +42,7 @@ pub enum PuzzleType {
     MonkeyInTheMiddle,
     HillClimbingAlgorithm,
     DistressSignal,
+    RegolithReservoir,
 }
 
 impl FromStr for PuzzleType {
@@ -62,6 +63,7 @@ impl FromStr for PuzzleType {
             "monkey_in_the_middle" => Ok(Self::MonkeyInTheMiddle),
             "hill_climbing_algorithm" => Ok(Self::HillClimbingAlgorithm),
             "distress_signal" => Ok(Self::DistressSignal),
+            "regolith_reservoir" => Ok(Self::RegolithReservoir),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -83,6 +85,7 @@ impl PuzzleType {
             Self::MonkeyInTheMiddle => "monkey_in_the_middle",
             Self::HillClimbingAlgorithm => "hill_climbing_algorithm",
             Self::DistressSignal => "distress_signal",
+            Self::RegolithReservoir => "regolith_reservoir",
         }
     }
 
@@ -107,6 +110,7 @@ impl PuzzleType {
                 crate::puzzles::hill_climbing_algorithm::hill_climbing_algorithm
             }
             Self::DistressSignal => crate::puzzles::distress_signal::distress_signal,
+            Self::RegolithReservoir => crate::puzzles::regolith_reservoir::regolith_reservoir,
         }
     }
 }
