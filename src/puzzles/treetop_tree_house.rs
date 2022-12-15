@@ -3,23 +3,33 @@ mod digit_grid;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use self::digit_grid::{Coordinates, DigitGrid};
 use crate::{
-    contents::convert::contents::ParseContentsError,
+    common::position::Position,
+    contents::{
+        convert::contents::{AsParseContents, ParseContentsError, SingleSection},
+        grid::Grid,
+    },
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
+use self::digit_grid::TreetopGrid;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn treetop_tree_house(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let grid = input.file_contents.parse::<DigitGrid>()?;
+    let SingleSection(grid) = input
+        .file_contents
+        .as_str()
+        .parse_contents::<SingleSection<Grid<1, 0, usize>>>()?;
+    let grid_positions = grid.positions().collect::<Vec<Position<usize>>>();
+    let treetop_grid = TreetopGrid(grid);
     let answer = match input.puzzle_part {
-        PuzzlePart::Part1 => (0..grid.height)
-            .flat_map(move |row| (0..grid.width).map(move |col| Coordinates { row, col }))
-            .filter(|coords| grid.visible(*coords))
+        PuzzlePart::Part1 => grid_positions
+            .into_iter()
+            .filter(|position| treetop_grid.visible(*position))
             .count(),
-        PuzzlePart::Part2 => (0..grid.height)
-            .flat_map(move |row| (0..grid.width).map(move |col| Coordinates { row, col }))
-            .map(|coords| grid.scenic_score(coords))
+        PuzzlePart::Part2 => grid_positions
+            .into_iter()
+            .map(|position| treetop_grid.scenic_score(position))
             .max()
             .map_or(0, |x| x),
     };

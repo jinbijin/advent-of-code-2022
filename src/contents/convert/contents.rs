@@ -236,3 +236,59 @@ where
         }
     }
 }
+
+pub struct SectionPair<T, U>(pub T, pub U);
+
+impl<T, U> FromSections for SectionPair<T, U>
+where
+    T: FromSection,
+    U: FromSection,
+{
+    type Err = ParseContentsError;
+
+    fn from_sections(s: &str) -> Result<Self, Self::Err> {
+        let mut sections = s.sections();
+
+        let first = match sections.next() {
+            Some(section) => {
+                section
+                    .contents
+                    .parse_section::<T>()
+                    .map_err(|err| ParseContentsError {
+                        error_description: None,
+                        section_errors: vec![ParseSectionItemError::new(0, 0, err)],
+                    })
+            }
+            None => Err(ParseContentsError {
+                error_description: Some(format!("unexpected empty file")),
+                section_errors: Vec::new(),
+            }),
+        }?;
+
+        let second = match sections.next() {
+            Some(section) => {
+                section
+                    .contents
+                    .parse_section::<U>()
+                    .map_err(|err| ParseContentsError {
+                        error_description: None,
+                        section_errors: vec![ParseSectionItemError::new(0, 0, err)],
+                    })
+            }
+            None => Err(ParseContentsError {
+                error_description: Some(format!(
+                    "unexpected end of file while reading second section"
+                )),
+                section_errors: Vec::new(),
+            }),
+        }?;
+
+        match sections.next() {
+            Some(_) => Err(ParseContentsError {
+                error_description: Some(format!("expected only 2 sections, found more")),
+                section_errors: Vec::new(),
+            }),
+            None => Ok(SectionPair(first, second)),
+        }
+    }
+}
