@@ -43,6 +43,7 @@ pub enum PuzzleType {
     HillClimbingAlgorithm,
     DistressSignal,
     RegolithReservoir,
+    BeaconExclusionZone,
 }
 
 impl FromStr for PuzzleType {
@@ -64,6 +65,7 @@ impl FromStr for PuzzleType {
             "hill_climbing_algorithm" => Ok(Self::HillClimbingAlgorithm),
             "distress_signal" => Ok(Self::DistressSignal),
             "regolith_reservoir" => Ok(Self::RegolithReservoir),
+            "beacon_exclusion_zone" => Ok(Self::BeaconExclusionZone),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -86,6 +88,7 @@ impl PuzzleType {
             Self::HillClimbingAlgorithm => "hill_climbing_algorithm",
             Self::DistressSignal => "distress_signal",
             Self::RegolithReservoir => "regolith_reservoir",
+            Self::BeaconExclusionZone => "beacon_exclusion_zone",
         }
     }
 
@@ -111,6 +114,9 @@ impl PuzzleType {
             }
             Self::DistressSignal => crate::puzzles::distress_signal::distress_signal,
             Self::RegolithReservoir => crate::puzzles::regolith_reservoir::regolith_reservoir,
+            Self::BeaconExclusionZone => {
+                crate::puzzles::beacon_exclusion_zone::beacon_exclusion_zone
+            }
         }
     }
 }
