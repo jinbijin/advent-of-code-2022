@@ -44,6 +44,7 @@ pub enum PuzzleType {
     DistressSignal,
     RegolithReservoir,
     BeaconExclusionZone,
+    ProboscideaVolcanium,
 }
 
 impl FromStr for PuzzleType {
@@ -66,6 +67,7 @@ impl FromStr for PuzzleType {
             "distress_signal" => Ok(Self::DistressSignal),
             "regolith_reservoir" => Ok(Self::RegolithReservoir),
             "beacon_exclusion_zone" => Ok(Self::BeaconExclusionZone),
+            "proboscidea_volcanium" => Ok(Self::ProboscideaVolcanium),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -89,6 +91,7 @@ impl PuzzleType {
             Self::DistressSignal => "distress_signal",
             Self::RegolithReservoir => "regolith_reservoir",
             Self::BeaconExclusionZone => "beacon_exclusion_zone",
+            Self::ProboscideaVolcanium => "proboscidea_volcanium",
         }
     }
 
@@ -116,6 +119,9 @@ impl PuzzleType {
             Self::RegolithReservoir => crate::puzzles::regolith_reservoir::regolith_reservoir,
             Self::BeaconExclusionZone => {
                 crate::puzzles::beacon_exclusion_zone::beacon_exclusion_zone
+            }
+            Self::ProboscideaVolcanium => {
+                crate::puzzles::proboscidea_volcanium::proboscidea_volcanium
             }
         }
     }
