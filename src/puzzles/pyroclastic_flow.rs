@@ -24,17 +24,19 @@ pub fn pyroclastic_flow(input: PuzzleInput) -> Result<String, ParseContentsError
         .as_str()
         .parse_contents::<SingleSection<SingleLine<RockShiftCollection>>>()?;
     let simulator = collection.as_rock_simulator();
-    let cycles: usize = match input.puzzle_part {
+
+    // Some explicit u64's to keep this working in wasm
+    let cycles: u64 = match input.puzzle_part {
         PuzzlePart::Part1 => 2022,
         PuzzlePart::Part2 => 1000000000000,
     };
     let cycle_info = determine_cycle(&collection);
     let cycle_length = cycle_info.cycle_end - cycle_info.cycle_start;
-    let periodic_iterations = cycles - cycle_info.cycle_start;
-    let cycle_count = periodic_iterations / cycle_length;
-    let cycle_weight = cycle_info.height_after - cycle_info.height_before;
+    let periodic_iterations = cycles - (cycle_info.cycle_start as u64);
+    let cycle_count = periodic_iterations / (cycle_length as u64);
+    let cycle_weight = (cycle_info.height_after - cycle_info.height_before) as u64;
     let height_periodic_part = cycle_count * cycle_weight;
-    let tail_cycles = periodic_iterations % cycle_length;
+    let tail_cycles = (periodic_iterations % (cycle_length as u64)) as usize;
     let non_periodic_cycles = cycle_info.cycle_start + tail_cycles;
 
     dbg!(&cycle_info);
@@ -42,7 +44,7 @@ pub fn pyroclastic_flow(input: PuzzleInput) -> Result<String, ParseContentsError
     let answer = height_periodic_part
         + match simulator
             .take(non_periodic_cycles)
-            .map(|x| x.height_to)
+            .map(|x| x.height_to as u64)
             .max()
         {
             Some(max) => max,

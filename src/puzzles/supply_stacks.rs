@@ -1,92 +1,38 @@
-mod supply_input_line;
-
-use std::{collections::HashMap, str::Lines};
+mod crate_cell;
+mod crate_stacks;
+mod move_instruction;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use self::supply_input_line::{ParseSupplyInputIterator, SupplyInputLine};
+use self::{
+    crate_cell::CrateCell,
+    crate_stacks::{CrateStacks, MoveMode},
+    move_instruction::MoveInstruction,
+};
 use crate::{
-    contents::convert::contents::ParseContentsError,
-    file::{FileErrorCollection, FileParseResult},
+    contents::{
+        convert::contents::{AsParseContents, ParseContentsError, SectionPair},
+        grid::Grid,
+    },
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
 };
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn supply_stacks(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let supply_input_iterator: ParseSupplyInputIterator<Lines> = input.file_contents.lines().into();
-    let supply_input: Result<Vec<SupplyInputLine>, FileErrorCollection> = supply_input_iterator
-        .collect::<FileParseResult<SupplyInputLine>>()
-        .into();
-    let supply_input = supply_input?;
+    let SectionPair(grid, instructions) = input
+        .file_contents
+        .as_str()
+        .parse_contents::<SectionPair<Grid<3, 1, CrateCell>, Vec<MoveInstruction>>>()?;
+    let mut crate_stacks: CrateStacks = grid.into();
+    let move_mode = match input.puzzle_part {
+        PuzzlePart::Part1 => MoveMode::OneByOne,
+        PuzzlePart::Part2 => MoveMode::AllAtOnce,
+    };
 
-    // Help, ugly!
-    let mut crate_layer_lines: Vec<Vec<Option<char>>> = Vec::new();
-    let mut instructions: Vec<(usize, char, char)> = Vec::new();
-    let mut hash_map: HashMap<char, Vec<char>> = HashMap::new();
-    let mut stack_mapping: Vec<char> = Vec::new();
-    let mut stacks: Vec<Vec<char>> = Vec::new();
+    crate_stacks.perform_instructions(&instructions, move_mode);
 
-    for supply_line in supply_input.into_iter() {
-        match supply_line {
-            SupplyInputLine::CrateLayerLine(value) => crate_layer_lines.push(value),
-            SupplyInputLine::EmptyLine => {}
-            SupplyInputLine::MoveInstructionLine { count, from, to } => {
-                instructions.push((count, from, to))
-            }
-            SupplyInputLine::StackMappingLine(value) => {
-                stack_mapping = value.clone();
-                stacks = value.iter().map(|_| Vec::new()).collect::<Vec<Vec<char>>>();
-            }
-        }
-    }
-
-    // Initialize stacks
-    for crate_layer_line in crate_layer_lines.into_iter().rev() {
-        for (index, crate_value) in crate_layer_line.into_iter().enumerate() {
-            if let Some(value) = crate_value {
-                stacks[index].push(value);
-            }
-        }
-    }
-
-    // Initialize hash map
-    for (index, c) in stack_mapping.clone().into_iter().enumerate() {
-        hash_map.insert(c, stacks[index].clone());
-    }
-
-    // Perform rearrangement
-    for (count, from, to) in instructions.into_iter() {
-        let mut inter_stack: Vec<char> = Vec::new();
-        if let Some(from_stack) = hash_map.get_mut(&from) {
-            for _ in 0..count {
-                if let Some(c) = from_stack.pop() {
-                    inter_stack.push(c);
-                }
-            }
-        }
-        if let Some(to_stack) = hash_map.get_mut(&to) {
-            match input.puzzle_part {
-                PuzzlePart::Part1 => {
-                    for c in inter_stack.into_iter() {
-                        to_stack.push(c);
-                    }
-                }
-                PuzzlePart::Part2 => {
-                    for c in inter_stack.into_iter().rev() {
-                        to_stack.push(c);
-                    }
-                }
-            }
-        }
-    }
-
-    // Collect result
-    Ok(stack_mapping
-        .into_iter()
-        .filter_map(|c| hash_map.get(&c))
-        .filter_map(|v| v.last())
-        .collect::<String>())
+    Ok(crate_stacks.get_stack_tops())
 }
 
 #[cfg(test)]

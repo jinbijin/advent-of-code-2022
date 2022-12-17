@@ -80,7 +80,7 @@ where
         }
 
         let width = lines[0].chars().count();
-        if S != 0 && width % N + S != N {
+        if S != 0 && width % (N + S) != N {
             return Err(Self::Err::InvalidDimensions);
         }
 
@@ -100,6 +100,8 @@ where
                 contents.push(item);
             }
         }
+
+        let width = (width + S) / (N + S);
 
         Ok(Grid {
             width,
