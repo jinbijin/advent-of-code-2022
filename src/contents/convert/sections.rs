@@ -1,6 +1,6 @@
 use std::{
     error::Error,
-    fmt::{self, Display, Formatter},
+    fmt::{self, Debug, Display, Formatter},
     str::FromStr,
 };
 
@@ -52,6 +52,16 @@ impl Display for ParseSectionError {
     }
 }
 
+impl Debug for ParseSectionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        <Self as Display>::fmt(&self, f)
+    }
+}
+
+impl Error for ParseSectionError {}
+
+impl CustomSectionError for ParseSectionError {}
+
 impl From<Vec<ParseLineError>> for ParseSectionError {
     fn from(line_errors: Vec<ParseLineError>) -> Self {
         ParseSectionError {
@@ -91,7 +101,7 @@ impl Display for ParseSectionItemError {
             self.section + 1,
             self.first_line + 1
         )?;
-        self.section_error.fmt(f)
+        Display::fmt(&self.section_error, f)
     }
 }
 
@@ -196,5 +206,41 @@ impl AsParseLines for &str {
         T: FromLines,
     {
         T::from_lines(self)
+    }
+}
+
+pub struct SingleLine<T>(pub T);
+
+impl<T> FromLines for SingleLine<T>
+where
+    T: FromStr,
+    T::Err: Display,
+{
+    type Err = ParseSectionError;
+
+    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+        let mut lines = s.lines();
+
+        let result = match lines.next() {
+            Some(line) => line.parse::<T>().map_err(|err| ParseSectionError {
+                error_description: None,
+                line_errors: vec![ParseLineError {
+                    line: 0,
+                    error_description: err.to_string(),
+                }],
+            }),
+            None => Err(ParseSectionError {
+                error_description: Some(format!("unexpected empty file")),
+                line_errors: Vec::new(),
+            }),
+        }?;
+
+        match lines.next() {
+            Some(_) => Err(ParseSectionError {
+                error_description: Some(format!("expected only 1 section, found more")),
+                line_errors: Vec::new(),
+            }),
+            None => Ok(SingleLine(result)),
+        }
     }
 }

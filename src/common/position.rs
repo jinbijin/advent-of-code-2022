@@ -3,7 +3,7 @@ use std::{
     ops::{Add, Sub},
 };
 
-#[derive(Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct Position<T>
 where
     T: Copy + Hash + Ord + Add<T, Output = T> + Sub<T, Output = T>,
