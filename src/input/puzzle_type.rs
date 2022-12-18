@@ -46,6 +46,7 @@ pub enum PuzzleType {
     BeaconExclusionZone,
     ProboscideaVolcanium,
     PyroclasticFlow,
+    BoilingBoulders,
 }
 
 impl FromStr for PuzzleType {
@@ -70,6 +71,7 @@ impl FromStr for PuzzleType {
             "beacon_exclusion_zone" => Ok(Self::BeaconExclusionZone),
             "proboscidea_volcanium" => Ok(Self::ProboscideaVolcanium),
             "pyroclastic_flow" => Ok(Self::PyroclasticFlow),
+            "boiling_boulders" => Ok(Self::BoilingBoulders),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -95,6 +97,7 @@ impl PuzzleType {
             Self::BeaconExclusionZone => "beacon_exclusion_zone",
             Self::ProboscideaVolcanium => "proboscidea_volcanium",
             Self::PyroclasticFlow => "pyroclastic_flow",
+            Self::BoilingBoulders => "boiling_boulders",
         }
     }
 
@@ -127,6 +130,7 @@ impl PuzzleType {
                 crate::puzzles::proboscidea_volcanium::proboscidea_volcanium
             }
             Self::PyroclasticFlow => crate::puzzles::pyroclastic_flow::pyroclastic_flow,
+            Self::BoilingBoulders => crate::puzzles::boiling_boulders::boiling_boulders,
         }
     }
 }
