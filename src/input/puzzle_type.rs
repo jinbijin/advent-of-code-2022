@@ -47,6 +47,7 @@ pub enum PuzzleType {
     ProboscideaVolcanium,
     PyroclasticFlow,
     BoilingBoulders,
+    NotEnoughMinerals,
 }
 
 impl FromStr for PuzzleType {
@@ -72,6 +73,7 @@ impl FromStr for PuzzleType {
             "proboscidea_volcanium" => Ok(Self::ProboscideaVolcanium),
             "pyroclastic_flow" => Ok(Self::PyroclasticFlow),
             "boiling_boulders" => Ok(Self::BoilingBoulders),
+            "not_enough_minerals" => Ok(Self::NotEnoughMinerals),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -98,6 +100,7 @@ impl PuzzleType {
             Self::ProboscideaVolcanium => "proboscidea_volcanium",
             Self::PyroclasticFlow => "pyroclastic_flow",
             Self::BoilingBoulders => "boiling_boulders",
+            Self::NotEnoughMinerals => "not_enough_minerals",
         }
     }
 
@@ -131,6 +134,7 @@ impl PuzzleType {
             }
             Self::PyroclasticFlow => crate::puzzles::pyroclastic_flow::pyroclastic_flow,
             Self::BoilingBoulders => crate::puzzles::boiling_boulders::boiling_boulders,
+            Self::NotEnoughMinerals => crate::puzzles::not_enough_minerals::not_enough_minerals,
         }
     }
 }
