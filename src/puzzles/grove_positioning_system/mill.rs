@@ -50,6 +50,7 @@ where
         node.contents
     }
 
+    #[cfg(test)]
     pub fn get_value_previous_from(&self, index: usize, count: usize) -> T {
         let count = count % self.len();
         let mut node = self.nodes.borrow()[index].clone();
