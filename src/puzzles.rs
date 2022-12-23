@@ -7,6 +7,7 @@ pub mod distress_signal;
 pub mod grove_positioning_system;
 pub mod hill_climbing_algorithm;
 pub mod monkey_in_the_middle;
+pub mod monkey_map;
 pub mod monkey_math;
 pub mod no_space_left_on_device;
 pub mod not_enough_minerals;

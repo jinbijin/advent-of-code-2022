@@ -50,6 +50,7 @@ pub enum PuzzleType {
     NotEnoughMinerals,
     GrovePositioningSystem,
     MonkeyMath,
+    MonkeyMap,
 }
 
 impl FromStr for PuzzleType {
@@ -78,6 +79,7 @@ impl FromStr for PuzzleType {
             "not_enough_minerals" => Ok(Self::NotEnoughMinerals),
             "grove_positioning_system" => Ok(Self::GrovePositioningSystem),
             "monkey_math" => Ok(Self::MonkeyMath),
+            "monkey_map" => Ok(Self::MonkeyMap),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -107,6 +109,7 @@ impl PuzzleType {
             Self::NotEnoughMinerals => "not_enough_minerals",
             Self::GrovePositioningSystem => "grove_positioning_system",
             Self::MonkeyMath => "monkey_math",
+            Self::MonkeyMap => "monkey_map",
         }
     }
 
@@ -145,6 +148,7 @@ impl PuzzleType {
                 crate::puzzles::grove_positioning_system::grove_positioning_system
             }
             Self::MonkeyMath => crate::puzzles::monkey_math::monkey_math,
+            Self::MonkeyMap => crate::puzzles::monkey_map::monkey_map,
         }
     }
 }
