@@ -1,6 +1,7 @@
 mod common;
 mod contents;
 pub mod input;
+mod parse;
 mod puzzles;
 
 #[cfg(feature = "wee_alloc")]

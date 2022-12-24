@@ -71,40 +71,6 @@ impl From<Vec<ParseLineError>> for ParseSectionError {
     }
 }
 
-#[derive(Clone)]
-pub struct ParseSectionItemError {
-    section: usize,
-    first_line: usize,
-    section_error: ParseSectionError,
-}
-
-// TODO remove constructor
-impl ParseSectionItemError {
-    pub fn new(
-        section: usize,
-        first_line: usize,
-        section_error: ParseSectionError,
-    ) -> ParseSectionItemError {
-        ParseSectionItemError {
-            section,
-            first_line,
-            section_error,
-        }
-    }
-}
-
-impl Display for ParseSectionItemError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        writeln!(
-            f,
-            "In section {} at line {}:",
-            self.section + 1,
-            self.first_line + 1
-        )?;
-        Display::fmt(&self.section_error, f)
-    }
-}
-
 pub trait FromSection: Sized {
     fn from_section(s: &str) -> Result<Self, ParseSectionError>;
 }
@@ -141,16 +107,6 @@ impl AsParseSection for &str {
 pub struct ParseLineError {
     line: usize,
     error_description: String,
-}
-
-// TODO remove constructor
-impl ParseLineError {
-    pub fn new(line: usize, error_description: String) -> ParseLineError {
-        ParseLineError {
-            line,
-            error_description,
-        }
-    }
 }
 
 impl Display for ParseLineError {

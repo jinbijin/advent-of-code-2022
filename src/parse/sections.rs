@@ -1,6 +1,8 @@
 use std::{
     cmp::{self, Ordering},
-    str::Chars,
+    error::Error,
+    fmt::{self, Display, Formatter},
+    str::{Chars, FromStr},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -182,6 +184,80 @@ impl<'a> AsSections<'a> for &'a str {
                     carriage_return: None,
                 },
             },
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseBySectionError<TError> {
+    section: usize,
+    first_line: usize,
+    error: TError,
+}
+
+impl<TError> Display for ParseBySectionError<TError>
+where
+    TError: Display,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "in section {} (starting at line {}): {}",
+            self.section, self.first_line, self.error
+        )
+    }
+}
+
+impl<TError> Error for ParseBySectionError<TError> where TError: Error {}
+
+#[derive(Debug)]
+pub struct ParseBySectionsError<TError>(Vec<ParseBySectionError<TError>>);
+
+impl<TError> Display for ParseBySectionsError<TError>
+where
+    TError: Display,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for error in self.0.iter() {
+            writeln!(f, "{}", error)?;
+        }
+        Ok(())
+    }
+}
+
+impl<TError> Error for ParseBySectionsError<TError> where TError: Error {}
+
+pub struct BySections<T>(pub Vec<T>);
+
+impl<T> FromStr for BySections<T>
+where
+    T: FromStr,
+{
+    type Err = ParseBySectionsError<T::Err>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut error_collection: Vec<ParseBySectionError<T::Err>> = Vec::new();
+        let mut results: Vec<T> = Vec::new();
+
+        let line_results = s
+            .sections()
+            .map(|section| (section.starts_at_line, section.contents.parse::<T>()))
+            .enumerate();
+        for (index, (section_start, line_result)) in line_results {
+            match line_result {
+                Ok(result) => results.push(result),
+                Err(error) => error_collection.push(ParseBySectionError {
+                    section: index,
+                    first_line: section_start,
+                    error,
+                }),
+            }
+        }
+
+        if error_collection.len() > 0 {
+            Err(ParseBySectionsError(error_collection))
+        } else {
+            Ok(BySections(results))
         }
     }
 }

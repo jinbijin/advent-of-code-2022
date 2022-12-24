@@ -1,5 +1,5 @@
-use super::sections::{AsParseSection, FromSection, ParseLineError, ParseSectionItemError};
-use crate::contents::sections::AsSections;
+use super::sections::{AsParseSection, FromSection, ParseLineError, ParseSectionError};
+use crate::parse::sections::{AsSections, ParseBySectionsError};
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
@@ -54,16 +54,6 @@ impl ContentsError for ParseContentsError {
     }
 }
 
-// TODO remove constructor, allow creation via local traits only
-impl ParseContentsError {
-    pub fn new(section_errors: Vec<ParseSectionItemError>) -> ParseContentsError {
-        ParseContentsError {
-            section_errors,
-            error_description: None,
-        }
-    }
-}
-
 impl Display for ParseContentsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         if let Some(error_description) = &self.error_description {
@@ -93,6 +83,20 @@ impl ParseContentsError {
     }
 }
 
+// Conversions
+
+impl<TError> From<ParseBySectionsError<TError>> for ParseContentsError
+where
+    TError: Display,
+{
+    fn from(error: ParseBySectionsError<TError>) -> Self {
+        ParseContentsError {
+            error_description: Some(error.to_string()),
+            section_errors: Vec::new(),
+        }
+    }
+}
+
 impl From<Vec<ParseSectionItemError>> for ParseContentsError {
     fn from(section_errors: Vec<ParseSectionItemError>) -> Self {
         ParseContentsError {
@@ -105,7 +109,11 @@ impl From<Vec<ParseSectionItemError>> for ParseContentsError {
 impl From<Vec<ParseLineError>> for ParseContentsError {
     fn from(line_errors: Vec<ParseLineError>) -> Self {
         ParseContentsError {
-            section_errors: vec![ParseSectionItemError::new(0, 0, line_errors.into())],
+            section_errors: vec![ParseSectionItemError {
+                section: 0,
+                first_line: 0,
+                section_error: line_errors.into(),
+            }],
             error_description: None,
         }
     }
@@ -171,9 +179,11 @@ where
         for (index, (section_start, line_result)) in line_results {
             match line_result {
                 Ok(result) => results.push(result),
-                Err(err) => {
-                    error_collection.push(ParseSectionItemError::new(index, section_start, err))
-                }
+                Err(err) => error_collection.push(ParseSectionItemError {
+                    section: index,
+                    first_line: section_start,
+                    section_error: err,
+                }),
             }
         }
 
@@ -218,7 +228,11 @@ where
                     .parse_section::<T>()
                     .map_err(|err| ParseContentsError {
                         error_description: None,
-                        section_errors: vec![ParseSectionItemError::new(0, 0, err)],
+                        section_errors: vec![ParseSectionItemError {
+                            section: 0,
+                            first_line: 0,
+                            section_error: err,
+                        }],
                     })
             }
             None => Err(ParseContentsError {
@@ -256,7 +270,11 @@ where
                     .parse_section::<T>()
                     .map_err(|err| ParseContentsError {
                         error_description: None,
-                        section_errors: vec![ParseSectionItemError::new(0, 0, err)],
+                        section_errors: vec![ParseSectionItemError {
+                            section: 0,
+                            first_line: 0,
+                            section_error: err,
+                        }],
                     })
             }
             None => Err(ParseContentsError {
@@ -272,7 +290,11 @@ where
                     .parse_section::<U>()
                     .map_err(|err| ParseContentsError {
                         error_description: None,
-                        section_errors: vec![ParseSectionItemError::new(0, 0, err)],
+                        section_errors: vec![ParseSectionItemError {
+                            section: 0,
+                            first_line: 0,
+                            section_error: err,
+                        }],
                     })
             }
             None => Err(ParseContentsError {
@@ -290,5 +312,24 @@ where
             }),
             None => Ok(SectionPair(first, second)),
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct ParseSectionItemError {
+    section: usize,
+    first_line: usize,
+    section_error: ParseSectionError,
+}
+
+impl Display for ParseSectionItemError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "In section {} at line {}:",
+            self.section + 1,
+            self.first_line + 1
+        )?;
+        Display::fmt(&self.section_error, f)
     }
 }

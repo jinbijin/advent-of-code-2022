@@ -2,19 +2,17 @@
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError},
+    contents::convert::contents::ParseContentsError,
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{lines::ByLines, sections::BySections},
 };
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn calorie_counting(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let calorie_counts = input
-        .file_contents
-        .as_str()
-        .parse_contents::<Vec<Vec<i32>>>()?;
+    let BySections(calorie_counts) = input.file_contents.parse::<BySections<ByLines<i32>>>()?;
     let mut calorie_sums = calorie_counts
         .into_iter()
-        .map(|group| group.into_iter().sum())
+        .map(|ByLines(group)| group.into_iter().sum())
         .collect::<Vec<i32>>();
 
     // PERF (N: #groups, K: top # needed)
