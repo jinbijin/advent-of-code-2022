@@ -111,7 +111,10 @@ fn create_opposite_glueing() -> Glueing {
         (Edge::new(2, 0, Direction::Up), GlueOrientation::Aligned),
     );
 
-    Glueing { map, resolution: 50 }
+    Glueing {
+        map,
+        resolution: 50,
+    }
 }
 
 #[cfg(not(test))]

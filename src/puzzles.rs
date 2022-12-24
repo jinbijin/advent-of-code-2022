@@ -20,3 +20,4 @@ pub mod rucksack_reorganization;
 pub mod supply_stacks;
 pub mod treetop_tree_house;
 pub mod tuning_trouble;
+pub mod unstable_diffusion;

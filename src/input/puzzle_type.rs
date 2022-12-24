@@ -51,6 +51,7 @@ pub enum PuzzleType {
     GrovePositioningSystem,
     MonkeyMath,
     MonkeyMap,
+    UnstableDiffusion,
 }
 
 impl FromStr for PuzzleType {
@@ -80,6 +81,7 @@ impl FromStr for PuzzleType {
             "grove_positioning_system" => Ok(Self::GrovePositioningSystem),
             "monkey_math" => Ok(Self::MonkeyMath),
             "monkey_map" => Ok(Self::MonkeyMap),
+            "unstable_diffusion" => Ok(Self::UnstableDiffusion),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -110,6 +112,7 @@ impl PuzzleType {
             Self::GrovePositioningSystem => "grove_positioning_system",
             Self::MonkeyMath => "monkey_math",
             Self::MonkeyMap => "monkey_map",
+            Self::UnstableDiffusion => "unstable_diffusion",
         }
     }
 
@@ -149,6 +152,7 @@ impl PuzzleType {
             }
             Self::MonkeyMath => crate::puzzles::monkey_math::monkey_math,
             Self::MonkeyMap => crate::puzzles::monkey_map::monkey_map,
+            Self::UnstableDiffusion => crate::puzzles::unstable_diffusion::unstable_diffusion,
         }
     }
 }
