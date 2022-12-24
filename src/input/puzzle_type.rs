@@ -52,6 +52,7 @@ pub enum PuzzleType {
     MonkeyMath,
     MonkeyMap,
     UnstableDiffusion,
+    BlizzardBasin,
 }
 
 impl FromStr for PuzzleType {
@@ -82,6 +83,7 @@ impl FromStr for PuzzleType {
             "monkey_math" => Ok(Self::MonkeyMath),
             "monkey_map" => Ok(Self::MonkeyMap),
             "unstable_diffusion" => Ok(Self::UnstableDiffusion),
+            "blizzard_basin" => Ok(Self::BlizzardBasin),
             _ => Err(Self::Err::InvalidValue(String::from(s))),
         }
     }
@@ -113,6 +115,7 @@ impl PuzzleType {
             Self::MonkeyMath => "monkey_math",
             Self::MonkeyMap => "monkey_map",
             Self::UnstableDiffusion => "unstable_diffusion",
+            Self::BlizzardBasin => "blizzard_basin",
         }
     }
 
@@ -153,6 +156,7 @@ impl PuzzleType {
             Self::MonkeyMath => crate::puzzles::monkey_math::monkey_math,
             Self::MonkeyMap => crate::puzzles::monkey_map::monkey_map,
             Self::UnstableDiffusion => crate::puzzles::unstable_diffusion::unstable_diffusion,
+            Self::BlizzardBasin => crate::puzzles::blizzard_basin::blizzard_basin,
         }
     }
 }

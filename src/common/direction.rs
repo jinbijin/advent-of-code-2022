@@ -7,6 +7,15 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub fn all() -> Vec<Direction> {
+        vec![
+            Direction::Up,
+            Direction::Left,
+            Direction::Right,
+            Direction::Down,
+        ]
+    }
+
     pub fn opposite(self) -> Self {
         match self {
             Self::Up => Self::Down,
