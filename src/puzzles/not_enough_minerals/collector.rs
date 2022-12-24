@@ -1,7 +1,6 @@
 use super::{blueprint::Blueprint, collection_state::CollectionState, resources::Resources};
 
 pub struct Collector<'a> {
-    blueprint: &'a Blueprint,
     state_stack: Vec<CollectionState<'a>>,
     total_minutes: usize,
     current_max: usize,
@@ -55,7 +54,6 @@ pub trait AsCollector {
 impl AsCollector for Blueprint {
     fn collector<'a>(&'a self, total_minutes: usize) -> Collector<'a> {
         Collector {
-            blueprint: self,
             state_stack: vec![CollectionState::new(
                 self,
                 1,

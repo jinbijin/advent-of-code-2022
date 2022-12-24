@@ -9,19 +9,19 @@ pub enum ResourceType {
 impl ResourceType {
     pub fn all() -> Vec<ResourceType> {
         vec![
-            ResourceType::Geode,
-            ResourceType::Obsidian,
-            ResourceType::Clay,
             ResourceType::Ore,
+            ResourceType::Clay,
+            ResourceType::Obsidian,
+            ResourceType::Geode,
         ]
     }
 
     pub fn all_options() -> Vec<Option<ResourceType>> {
         vec![
-            Some(ResourceType::Geode),
-            Some(ResourceType::Obsidian),
-            Some(ResourceType::Clay),
             Some(ResourceType::Ore),
+            Some(ResourceType::Clay),
+            Some(ResourceType::Obsidian),
+            Some(ResourceType::Geode),
             None,
         ]
     }

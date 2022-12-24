@@ -14,6 +14,9 @@ use crate::{
 
 use self::{blueprint::Blueprint, collector::AsCollector};
 
+// PERF: Instead of this depth-first approach, I should probably do a breadth-first search;
+// Storing results in a `HashMap<Resources, HashSet<Resources>>` (mapping from production levels to possible stored resource values leading to it)
+// in combination with the bounds on useful production should make iteration *really fast*.
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn not_enough_minerals(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let SingleSection(blueprints) = input
@@ -62,4 +65,15 @@ mod tests {
 Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
 Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.
 ";
+
+    #[test]
+    fn example_1() -> Result<(), Box<dyn Error>> {
+        let output = not_enough_minerals(PuzzleInput {
+            file_contents: INPUT_TEXT.to_string(),
+            puzzle_part: PuzzlePart::Part1,
+        })?;
+
+        assert_eq!("33", output);
+        Ok(())
+    }
 }

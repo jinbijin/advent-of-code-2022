@@ -1,7 +1,6 @@
 use super::{blueprint::Blueprint, resource_type::ResourceType, resources::Resources};
 
 pub struct CollectionState<'a> {
-    blueprint: &'a Blueprint,
     start_of_minute: usize,
     total_minutes: usize,
     stored: Resources,
@@ -28,6 +27,13 @@ impl<'a> CollectionState<'a> {
         let options = Box::new(ResourceType::all_options().into_iter().filter_map(
             move |resource_type| match resource_type {
                 Some(resource_type) => {
+                    // Do not produce something if no longer needed.
+                    if let Some(max_needed) = blueprint.max_needed(resource_type) {
+                        if production.get(resource_type) >= max_needed {
+                            return None;
+                        }
+                    }
+
                     // Wait for resource to be affordable, then buy it.
                     match stored.time_until_affordable(production, blueprint.cost(resource_type)) {
                         Some(time_until_affordable) => {
@@ -64,7 +70,6 @@ impl<'a> CollectionState<'a> {
             },
         ));
         CollectionState {
-            blueprint,
             start_of_minute,
             total_minutes,
             stored,

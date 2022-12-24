@@ -3,14 +3,14 @@ use std::{
     ops::{Add, Mul, Sub},
 };
 
-use super::resource_type::{self, ResourceType};
+use super::resource_type::ResourceType;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Resources {
-    ore: usize,
-    clay: usize,
-    obsidian: usize,
-    geode: usize,
+    pub ore: usize,
+    pub clay: usize,
+    pub obsidian: usize,
+    pub geode: usize,
 }
 
 fn time_until_affordable(current: usize, production: usize, cost: usize) -> Option<usize> {

@@ -43,6 +43,22 @@ impl Blueprint {
             ResourceType::Geode => self.geode,
         }
     }
+
+    pub fn max_needed(&self, resource_type: ResourceType) -> Option<usize> {
+        match resource_type {
+            ResourceType::Ore => vec![
+                self.ore.ore,
+                self.clay.ore,
+                self.obsidian.ore,
+                self.geode.ore,
+            ]
+            .into_iter()
+            .max(),
+            ResourceType::Clay => Some(self.obsidian.clay),
+            ResourceType::Obsidian => Some(self.geode.obsidian),
+            ResourceType::Geode => None,
+        }
+    }
 }
 
 impl FromStr for Blueprint {
