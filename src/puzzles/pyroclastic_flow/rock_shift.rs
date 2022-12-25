@@ -1,10 +1,12 @@
 use std::{
+    error::Error,
     fmt::{self, Display, Formatter},
     str::FromStr,
 };
 
-use crate::common::direction::Direction;
+use crate::{common::direction::Direction, parse::error::ParseContentsError};
 
+#[derive(Debug)]
 pub enum ParseRockShiftError {
     InvalidInput { input: char },
 }
@@ -14,6 +16,14 @@ impl Display for ParseRockShiftError {
         match self {
             Self::InvalidInput { input } => write!(f, "invalid rock shift '{}'", input),
         }
+    }
+}
+
+impl Error for ParseRockShiftError {}
+
+impl From<ParseRockShiftError> for ParseContentsError {
+    fn from(value: ParseRockShiftError) -> Self {
+        ParseContentsError::new(value)
     }
 }
 

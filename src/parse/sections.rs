@@ -5,6 +5,11 @@ use std::{
     str::{Chars, FromStr},
 };
 
+#[cfg(feature = "wasm")]
+use serde::Serialize;
+
+use super::error::ParseContentsError;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Position {
     line_index: usize,
@@ -189,6 +194,7 @@ impl<'a> AsSections<'a> for &'a str {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "wasm", derive(Serialize))]
 pub struct ParseBySectionError<TError> {
     section: usize,
     first_line: usize,
@@ -211,14 +217,17 @@ where
 impl<TError> Error for ParseBySectionError<TError> where TError: Error {}
 
 #[derive(Debug)]
-pub struct ParseBySectionsError<TError>(Vec<ParseBySectionError<TError>>);
+#[cfg_attr(feature = "wasm", derive(Serialize))]
+pub struct ParseBySectionsError<TError> {
+    pub section_errors: Vec<ParseBySectionError<TError>>,
+}
 
 impl<TError> Display for ParseBySectionsError<TError>
 where
     TError: Display,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for error in self.0.iter() {
+        for error in self.section_errors.iter() {
             writeln!(f, "{}", error)?;
         }
         Ok(())
@@ -226,6 +235,15 @@ where
 }
 
 impl<TError> Error for ParseBySectionsError<TError> where TError: Error {}
+
+impl<TError> From<ParseBySectionsError<TError>> for ParseContentsError
+where
+    TError: Error,
+{
+    fn from(value: ParseBySectionsError<TError>) -> Self {
+        ParseContentsError::new(value)
+    }
+}
 
 pub struct BySections<T>(pub Vec<T>);
 
@@ -236,7 +254,7 @@ where
     type Err = ParseBySectionsError<T::Err>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut error_collection: Vec<ParseBySectionError<T::Err>> = Vec::new();
+        let mut section_errors: Vec<ParseBySectionError<T::Err>> = Vec::new();
         let mut results: Vec<T> = Vec::new();
 
         let line_results = s
@@ -246,7 +264,7 @@ where
         for (index, (section_start, line_result)) in line_results {
             match line_result {
                 Ok(result) => results.push(result),
-                Err(error) => error_collection.push(ParseBySectionError {
+                Err(error) => section_errors.push(ParseBySectionError {
                     section: index,
                     first_line: section_start,
                     error,
@@ -254,8 +272,8 @@ where
             }
         }
 
-        if error_collection.len() > 0 {
-            Err(ParseBySectionsError(error_collection))
+        if section_errors.len() > 0 {
+            Err(ParseBySectionsError { section_errors })
         } else {
             Ok(BySections(results))
         }

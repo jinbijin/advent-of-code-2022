@@ -2,12 +2,10 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{self, Display, Formatter},
+    str::FromStr,
 };
 
-use crate::{
-    common::position::Position,
-    contents::convert::sections::{CustomSectionError, FromLines},
-};
+use crate::common::position::Position;
 
 use super::map_tile::{MapTile, ParseMapTileError};
 
@@ -32,14 +30,12 @@ impl Display for ParseMapError {
 
 impl Error for ParseMapError {}
 
-impl CustomSectionError for ParseMapError {}
-
 pub struct MapData(pub HashMap<Position<usize>, MapTile>);
 
-impl FromLines for MapData {
+impl FromStr for MapData {
     type Err = ParseMapError;
 
-    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut tiles: HashMap<Position<usize>, MapTile> = HashMap::new();
 
         for (y, line) in s.lines().enumerate() {

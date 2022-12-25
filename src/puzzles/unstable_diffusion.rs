@@ -1,21 +1,18 @@
 mod elf_diffuser;
 mod elf_distribution;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::error::ParseContentsError,
     puzzles::unstable_diffusion::{elf_diffuser::AsDiffuser, elf_distribution::ElfDistribution},
 };
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn unstable_diffusion(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(elf_distribution) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<ElfDistribution>>()?;
+    let elf_distribution = input.file_contents.parse::<ElfDistribution>()?;
     let mut diffuser = elf_distribution.diffuser();
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => {

@@ -1,9 +1,10 @@
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
 };
 
-use crate::contents::convert::sections::{CustomSectionError, FromLines};
+use crate::parse::error::ParseContentsError;
 
 enum Direction {
     Up,
@@ -114,7 +115,11 @@ impl Debug for ParseElevationGridError {
 
 impl Error for ParseElevationGridError {}
 
-impl CustomSectionError for ParseElevationGridError {}
+impl From<ParseElevationGridError> for ParseContentsError {
+    fn from(value: ParseElevationGridError) -> Self {
+        ParseContentsError::new(value)
+    }
+}
 
 pub enum TransversalMode {
     FromStart,
@@ -216,10 +221,10 @@ impl ElevationGrid {
     }
 }
 
-impl FromLines for ElevationGrid {
+impl FromStr for ElevationGrid {
     type Err = ParseElevationGridError;
 
-    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lines = s.lines().collect::<Vec<&str>>();
         let height = lines.len();
         if height == 0 {

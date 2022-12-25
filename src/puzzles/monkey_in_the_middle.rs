@@ -6,14 +6,14 @@ mod monkey_name;
 mod operation;
 mod starting_items;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use self::monkey::MonkeyCollection;
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::error::ParseContentsError,
 };
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn monkey_in_the_middle(input: PuzzleInput) -> Result<String, ParseContentsError> {
@@ -22,10 +22,7 @@ pub fn monkey_in_the_middle(input: PuzzleInput) -> Result<String, ParseContentsE
         PuzzlePart::Part1 => 20,
         PuzzlePart::Part2 => 10000,
     };
-    let mut monkey_collection = input
-        .file_contents
-        .as_str()
-        .parse_contents::<MonkeyCollection>()?;
+    let mut monkey_collection = input.file_contents.parse::<MonkeyCollection>()?;
     for _ in 0..round_count {
         monkey_collection.round(relieved_after_inspection);
     }

@@ -1,26 +1,23 @@
 mod packet;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines, sections::BySections},
 };
 
 use self::packet::Packet;
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn distress_signal(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let packet_groups = input
-        .file_contents
-        .as_str()
-        .parse_contents::<Vec<Vec<Packet>>>()?;
+    let BySections(packet_groups) = input.file_contents.parse::<BySections<ByLines<Packet>>>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => packet_groups
             .into_iter()
             .enumerate()
-            .filter_map(|(index, packet_group)| {
+            .filter_map(|(index, ByLines(packet_group))| {
                 if packet_group[0].cmp(&packet_group[1]).is_lt() {
                     Some(index + 1)
                 } else {
@@ -31,7 +28,11 @@ pub fn distress_signal(input: PuzzleInput) -> Result<String, ParseContentsError>
         PuzzlePart::Part2 => {
             let divider_1 = Packet::List(vec![Packet::List(vec![Packet::Constant(2)])]);
             let divider_2 = Packet::List(vec![Packet::List(vec![Packet::Constant(6)])]);
-            let mut packets = packet_groups.into_iter().flatten().collect::<Vec<Packet>>();
+            let mut packets = packet_groups
+                .into_iter()
+                .map(|ByLines(packets)| packets)
+                .flatten()
+                .collect::<Vec<Packet>>();
             packets.push(divider_1.clone());
             packets.push(divider_2.clone());
             packets.sort();

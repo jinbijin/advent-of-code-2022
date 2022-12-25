@@ -4,7 +4,13 @@ use std::{
     str::FromStr,
 };
 
+#[cfg(feature = "wasm")]
+use serde::Serialize;
+
+use super::error::ParseContentsError;
+
 #[derive(Debug)]
+#[cfg_attr(feature = "wasm", derive(Serialize))]
 pub struct ParseByLineError<TError> {
     line: usize,
     error: TError,
@@ -22,14 +28,17 @@ where
 impl<TError> Error for ParseByLineError<TError> where TError: Error {}
 
 #[derive(Debug)]
-pub struct ParseByLinesError<TError>(pub Vec<ParseByLineError<TError>>);
+#[cfg_attr(feature = "wasm", derive(Serialize))]
+pub struct ParseByLinesError<TError> {
+    pub line_errors: Vec<ParseByLineError<TError>>,
+}
 
 impl<TError> Display for ParseByLinesError<TError>
 where
     TError: Display,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for error in self.0.iter() {
+        for error in self.line_errors.iter() {
             writeln!(f, "{}", error)?;
         }
         Ok(())
@@ -37,6 +46,15 @@ where
 }
 
 impl<TError> Error for ParseByLinesError<TError> where TError: Error {}
+
+impl<TError> From<ParseByLinesError<TError>> for ParseContentsError
+where
+    TError: Error,
+{
+    fn from(value: ParseByLinesError<TError>) -> Self {
+        ParseContentsError::new(value)
+    }
+}
 
 pub struct ByLines<T>(pub Vec<T>);
 
@@ -47,18 +65,18 @@ where
     type Err = ParseByLinesError<T::Err>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut error_collection: Vec<ParseByLineError<T::Err>> = Vec::new();
+        let mut line_errors: Vec<ParseByLineError<T::Err>> = Vec::new();
         let mut results: Vec<T> = Vec::new();
 
         let line_results = s.lines().map(|line| line.parse::<T>()).enumerate();
         for (index, line_result) in line_results {
             match line_result {
                 Ok(result) => results.push(result),
-                Err(error) => error_collection.push(ParseByLineError { line: index, error }),
+                Err(error) => line_errors.push(ParseByLineError { line: index, error }),
             }
         }
-        if error_collection.len() > 0 {
-            Err(ParseByLinesError(error_collection))
+        if line_errors.len() > 0 {
+            Err(ParseByLinesError { line_errors })
         } else {
             Ok(ByLines(results))
         }

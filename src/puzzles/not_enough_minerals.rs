@@ -4,25 +4,22 @@ mod collector;
 mod resource_type;
 mod resources;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
 };
 
 use self::{blueprint::Blueprint, collector::AsCollector};
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 // PERF: Instead of this depth-first approach, I should probably do a breadth-first search;
 // Storing results in a `HashMap<Resources, HashSet<Resources>>` (mapping from production levels to possible stored resource values leading to it)
 // in combination with the bounds on useful production should make iteration *really fast*.
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn not_enough_minerals(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(blueprints) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<Blueprint>>>()?;
+    let ByLines(blueprints) = input.file_contents.parse::<ByLines<Blueprint>>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => blueprints
             .into_iter()

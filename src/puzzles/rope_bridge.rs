@@ -1,22 +1,18 @@
 mod rope_motion;
 
+use self::rope_motion::{Direction, RopeMotion, RopePosition, RopePositionCollector};
+use crate::{
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
+};
 use std::collections::HashSet;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use self::rope_motion::{Direction, RopeMotion, RopePosition, RopePositionCollector};
-use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
-    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
-};
-
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn rope_bridge(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(motions) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<RopeMotion>>>()?;
+    let ByLines(motions) = input.file_contents.parse::<ByLines<RopeMotion>>()?;
     let directions = motions
         .into_iter()
         .flat_map(|motion| (0..motion.count).map(move |_| motion.direction))

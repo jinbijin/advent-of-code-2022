@@ -1,14 +1,14 @@
 mod rock_range;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
 };
 
 use self::rock_range::{RockRangeChain, RockRangesWithAbyss, RockRangesWithFloor};
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 // PERF
 // We currently run the entire simulation in the most naive way possible, which is kinda slow.
@@ -16,10 +16,7 @@ use self::rock_range::{RockRangeChain, RockRangesWithAbyss, RockRangesWithFloor}
 // But it is also possible to compute in one pass the sand-covered range; that should be optimal.
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn regolith_reservoir(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(rock_range_chains) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<RockRangeChain>>>()?;
+    let ByLines(rock_range_chains) = input.file_contents.parse::<ByLines<RockRangeChain>>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => {
             let rock_ranges_with_abyss: RockRangesWithAbyss = rock_range_chains.into();

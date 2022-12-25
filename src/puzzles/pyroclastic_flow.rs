@@ -2,27 +2,19 @@ mod rock;
 mod rock_shift;
 mod rock_simulator;
 
+use self::{rock_shift::RockShiftCollection, rock_simulator::AsRockSimulator};
+use crate::{
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::error::ParseContentsError,
+};
 use std::collections::HashMap;
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::{
-    contents::convert::{
-        contents::{AsParseContents, ParseContentsError, SingleSection},
-        sections::SingleLine,
-    },
-    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
-};
-
-use self::{rock_shift::RockShiftCollection, rock_simulator::AsRockSimulator};
-
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn pyroclastic_flow(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(SingleLine(collection)) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<SingleLine<RockShiftCollection>>>()?;
+    let collection = input.file_contents.parse::<RockShiftCollection>()?;
     let simulator = collection.as_rock_simulator();
 
     // Some explicit u64's to keep this working in wasm

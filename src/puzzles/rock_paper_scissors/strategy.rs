@@ -4,23 +4,24 @@ use std::{
     str::FromStr,
 };
 
-use crate::contents::tokens::AsTokens;
+use crate::validation::{
+    format::{FormatDescription, FormatError},
+    true_lit::True,
+};
 
+#[cfg(feature = "wasm")]
+use serde::Serialize;
+
+#[derive(Debug)]
 pub enum ParseRpsTypeError {
-    InvalidValue(String),
+    Format { format: FormatError },
 }
 
 impl Display for ParseRpsTypeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidValue(value) => write!(f, "invalid RPS option '{}'", value),
+            Self::Format { format } => write!(f, "{}", format),
         }
-    }
-}
-
-impl Debug for ParseRpsTypeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        <Self as Display>::fmt(&self, f)
     }
 }
 
@@ -33,6 +34,10 @@ pub enum RpsType {
     Scissors,
 }
 
+impl FormatDescription for RpsType {
+    const FORMAT_DESCRIPTION: &'static str = "A|B|C";
+}
+
 impl FromStr for RpsType {
     type Err = ParseRpsTypeError;
 
@@ -41,26 +46,23 @@ impl FromStr for RpsType {
             "A" => Ok(Self::Rock),
             "B" => Ok(Self::Paper),
             "C" => Ok(Self::Scissors),
-            other => Err(Self::Err::InvalidValue(other.to_string())),
+            _ => Err(Self::Err::Format {
+                format: FormatError::from_actual::<RpsType>(s),
+            }),
         }
     }
 }
 
+#[derive(Debug)]
 pub enum ParseRpsTargetError {
-    InvalidValue(String),
+    Format { format: FormatError },
 }
 
 impl Display for ParseRpsTargetError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidValue(value) => write!(f, "invalid RPS target '{}'", value),
+            Self::Format { format } => write!(f, "{}", format),
         }
-    }
-}
-
-impl Debug for ParseRpsTargetError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        <Self as Display>::fmt(&self, f)
     }
 }
 
@@ -73,6 +75,10 @@ pub enum RpsTarget {
     Z,
 }
 
+impl FormatDescription for RpsTarget {
+    const FORMAT_DESCRIPTION: &'static str = "X|Y|Z";
+}
+
 impl FromStr for RpsTarget {
     type Err = ParseRpsTargetError;
 
@@ -81,7 +87,9 @@ impl FromStr for RpsTarget {
             "X" => Ok(Self::X),
             "Y" => Ok(Self::Y),
             "Z" => Ok(Self::Z),
-            other => Err(Self::Err::InvalidValue(other.to_string())),
+            _ => Err(Self::Err::Format {
+                format: FormatError::from_actual::<RpsTarget>(s),
+            }),
         }
     }
 }
@@ -96,71 +104,128 @@ impl From<RpsTarget> for RpsType {
     }
 }
 
+#[derive(Debug)]
+#[cfg_attr(feature = "wasm", derive(Serialize))]
+#[cfg_attr(feature = "wasm", serde(untagged))]
 pub enum ParseRpsStrategyError {
-    Empty,
-    MissingTarget,
-    TooManyParts,
-    InvalidOpponentChoice(String),
-    InvalidTarget(String),
+    Empty {
+        required: True,
+    },
+    Format {
+        format: FormatError,
+    },
+    OpponentChoice {
+        opponent_choice: FormatError,
+    },
+    Target {
+        target: FormatError,
+    },
+    Both {
+        opponent_choice: FormatError,
+        target: FormatError,
+    },
 }
 
 impl Display for ParseRpsStrategyError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty => write!(f, "unexpected empty strategy"),
-            Self::MissingTarget => write!(f, "missing target"),
-            Self::TooManyParts => write!(f, "unexpected data at end of line"),
-            Self::InvalidOpponentChoice(value) => write!(f, "invalid opponent choice {}", value),
-            Self::InvalidTarget(value) => write!(f, "invalid target '{}'", value),
+            Self::Empty { required: _ } => write!(f, "unexpected empty strategy"),
+            Self::Format { format } => write!(f, "{}", format),
+            Self::OpponentChoice { opponent_choice } => {
+                write!(f, "opponent choice invalid: {}", opponent_choice)
+            }
+            Self::Target { target } => write!(f, "target invalid: {}", target),
+            Self::Both {
+                opponent_choice,
+                target,
+            } => {
+                writeln!(f, "opponent choice invalid: {}", opponent_choice)?;
+                writeln!(f, "target invalid: {}", target)
+            }
         }
     }
 }
 
-impl Debug for ParseRpsStrategyError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        <Self as Display>::fmt(&self, f)
+impl Error for ParseRpsStrategyError {}
+
+impl From<ParseRpsTypeError> for ParseRpsStrategyError {
+    fn from(value: ParseRpsTypeError) -> Self {
+        match value {
+            ParseRpsTypeError::Format {
+                format: opponent_choice,
+            } => Self::OpponentChoice { opponent_choice },
+        }
     }
 }
 
-impl Error for ParseRpsStrategyError {}
+impl From<ParseRpsTargetError> for ParseRpsStrategyError {
+    fn from(value: ParseRpsTargetError) -> Self {
+        match value {
+            ParseRpsTargetError::Format { format: target } => Self::Target { target },
+        }
+    }
+}
+
+impl From<(ParseRpsTypeError, ParseRpsTargetError)> for ParseRpsStrategyError {
+    fn from(value: (ParseRpsTypeError, ParseRpsTargetError)) -> Self {
+        match value {
+            (
+                ParseRpsTypeError::Format {
+                    format: opponent_choice,
+                },
+                ParseRpsTargetError::Format { format: target },
+            ) => Self::Both {
+                opponent_choice,
+                target,
+            },
+        }
+    }
+}
 
 pub struct RpsStrategy {
     pub opponent_choice: RpsType,
     pub target: RpsTarget,
 }
 
+impl FormatDescription for RpsStrategy {
+    const FORMAT_DESCRIPTION: &'static str = "<opponent choice> <target>";
+}
+
 impl FromStr for RpsStrategy {
     type Err = ParseRpsStrategyError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut tokens = s.tokens();
+        let mut tokens = s.split_whitespace();
 
         let opponent_choice = match tokens.next() {
-            Some(opponent_choice) => opponent_choice.parse::<RpsType>().map_err(
-                |ParseRpsTypeError::InvalidValue(err)| {
-                    ParseRpsStrategyError::InvalidOpponentChoice(err)
-                },
-            ),
-            None => Err(ParseRpsStrategyError::Empty),
-        }?;
+            Some(opponent_choice) => opponent_choice.parse::<RpsType>(),
+            None => {
+                return Err(ParseRpsStrategyError::Empty { required: True });
+            }
+        };
 
         let target = match tokens.next() {
-            Some(target) => {
-                target
-                    .parse::<RpsTarget>()
-                    .map_err(|ParseRpsTargetError::InvalidValue(err)| {
-                        ParseRpsStrategyError::InvalidTarget(err)
-                    })
+            Some(target) => target.parse::<RpsTarget>(),
+            None => {
+                return Err(Self::Err::Format {
+                    format: FormatError::from_actual::<RpsStrategy>(s),
+                });
             }
-            None => Err(ParseRpsStrategyError::MissingTarget),
-        }?;
+        };
 
         match tokens.next() {
-            Some(_) => Err(ParseRpsStrategyError::TooManyParts),
-            None => Ok(RpsStrategy {
-                opponent_choice,
-                target,
+            Some(_) => Err(Self::Err::Format {
+                format: FormatError::from_actual::<RpsStrategy>(s),
             }),
+            None => match (opponent_choice, target) {
+                (Ok(opponent_choice), Ok(target)) => Ok(RpsStrategy {
+                    opponent_choice,
+                    target,
+                }),
+                (Ok(_), Err(target)) => Err(target.into()),
+                (Err(opponent_choice), Ok(_)) => Err(opponent_choice.into()),
+                (Err(opponent_choice), Err(target)) => Err((opponent_choice, target).into()),
+            },
         }
     }
 }

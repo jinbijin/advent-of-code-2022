@@ -1,21 +1,18 @@
 mod command_line;
 mod file_tree;
 
+use self::{command_line::CommandLine, file_tree::Directory};
+use crate::{
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
+};
+
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use self::{command_line::CommandLine, file_tree::Directory};
-use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
-    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
-};
-
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn no_space_left_on_device(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(command_lines) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<CommandLine>>>()?;
+    let ByLines(command_lines) = input.file_contents.parse::<ByLines<CommandLine>>()?;
     let file_system = command_lines.into_iter().collect::<Directory>();
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => {

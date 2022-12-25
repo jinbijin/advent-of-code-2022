@@ -1,14 +1,14 @@
 mod elevation_grid;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::error::ParseContentsError,
 };
 
 use self::elevation_grid::{ElevationGrid, ElevationGridTransversalResult, TransversalMode};
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn hill_climbing_algorithm(input: PuzzleInput) -> Result<String, ParseContentsError> {
@@ -16,10 +16,7 @@ pub fn hill_climbing_algorithm(input: PuzzleInput) -> Result<String, ParseConten
         PuzzlePart::Part1 => TransversalMode::FromStart,
         PuzzlePart::Part2 => TransversalMode::FromLowest,
     };
-    let SingleSection(elevation_grid) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<ElevationGrid>>()?;
+    let elevation_grid = input.file_contents.parse::<ElevationGrid>()?;
     let mut transverser = elevation_grid.start_transversal(transversal_mode);
     let mut result = transverser.step();
     while ElevationGridTransversalResult::Continue == result {

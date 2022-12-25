@@ -2,12 +2,10 @@ use std::{
     collections::{HashMap, VecDeque},
     error::Error,
     fmt::{self, Debug, Display, Formatter},
+    str::FromStr,
 };
 
-use crate::contents::convert::{
-    contents::{AsParseSections, FromContents, ParseContentsError},
-    sections::{CustomSectionError, FromLines},
-};
+use crate::parse::sections::{BySections, ParseBySectionsError};
 
 use super::{
     divisor::{Divisor, ParseDivisorError},
@@ -71,8 +69,6 @@ impl Debug for ParseMonkeyError {
 }
 
 impl Error for ParseMonkeyError {}
-
-impl CustomSectionError for ParseMonkeyError {}
 
 impl From<ParseMonkeyNameError> for ParseMonkeyError {
     fn from(err: ParseMonkeyNameError) -> Self {
@@ -172,10 +168,15 @@ impl Monkey {
     }
 }
 
-impl FromLines for (String, Monkey) {
+pub struct MonkeyWithName {
+    name: String,
+    monkey: Monkey,
+}
+
+impl FromStr for MonkeyWithName {
     type Err = ParseMonkeyError;
 
-    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut lines = s.lines();
 
         let monkey_key = match lines.next() {
@@ -237,9 +238,9 @@ impl FromLines for (String, Monkey) {
             ))),
         }?;
 
-        Ok((
-            monkey_key,
-            Monkey {
+        Ok(MonkeyWithName {
+            name: monkey_key,
+            monkey: Monkey {
                 items,
                 operation,
                 divisor,
@@ -247,7 +248,7 @@ impl FromLines for (String, Monkey) {
                 throw_to_if_false,
                 items_thrown: 0,
             },
-        ))
+        })
     }
 }
 
@@ -304,15 +305,17 @@ impl MonkeyCollection {
     }
 }
 
-impl FromContents for MonkeyCollection {
-    fn from_contents(s: &str) -> Result<Self, ParseContentsError> {
-        let monkeys_with_keys = s.parse_sections::<Vec<(String, Monkey)>>()?;
+impl FromStr for MonkeyCollection {
+    type Err = ParseBySectionsError<ParseMonkeyError>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let BySections(monkeys_with_name) = s.parse::<BySections<MonkeyWithName>>()?;
         let mut monkey_keys: Vec<String> = Vec::new();
         let mut monkeys: HashMap<String, Monkey> = HashMap::new();
 
-        for (key, monkey) in monkeys_with_keys {
-            monkey_keys.push(key.clone());
-            monkeys.insert(key, monkey);
+        for MonkeyWithName { name, monkey } in monkeys_with_name {
+            monkey_keys.push(name.clone());
+            monkeys.insert(name, monkey);
         }
 
         Ok(MonkeyCollection {

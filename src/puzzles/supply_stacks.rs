@@ -2,28 +2,24 @@ mod crate_cell;
 mod crate_stacks;
 mod move_instruction;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use self::{
     crate_cell::CrateCell,
     crate_stacks::{CrateStacks, MoveMode},
     move_instruction::MoveInstruction,
 };
 use crate::{
-    contents::{
-        convert::contents::{AsParseContents, ParseContentsError, SectionPair},
-        grid::Grid,
-    },
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, grid::Grid, lines::ByLines, section_pair::SectionPair},
 };
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn supply_stacks(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SectionPair(grid, instructions) = input
+    let SectionPair(grid, ByLines(instructions)) = input
         .file_contents
-        .as_str()
-        .parse_contents::<SectionPair<Grid<3, 1, CrateCell>, Vec<MoveInstruction>>>()?;
+        .parse::<SectionPair<Grid<3, 1, CrateCell>, ByLines<MoveInstruction>>>()?;
     let mut crate_stacks: CrateStacks = grid.into();
     let move_mode = match input.puzzle_part {
         PuzzlePart::Part1 => MoveMode::OneByOne,

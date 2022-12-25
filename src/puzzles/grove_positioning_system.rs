@@ -1,13 +1,13 @@
 mod mill;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
     puzzles::grove_positioning_system::mill::Mill,
 };
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn grove_positioning_system(input: PuzzleInput) -> Result<String, ParseContentsError> {
@@ -20,10 +20,7 @@ pub fn grove_positioning_system(input: PuzzleInput) -> Result<String, ParseConte
         PuzzlePart::Part2 => 10,
     };
 
-    let SingleSection(numbers) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<i64>>>()?;
+    let ByLines(numbers) = input.file_contents.parse::<ByLines<i64>>()?;
     let decrypted = numbers.into_iter().map(|x| x * key).collect::<Vec<i64>>();
     let mill: Mill<i64> = decrypted.into();
     for _ in 0..mix_count {

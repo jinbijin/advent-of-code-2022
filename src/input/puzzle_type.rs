@@ -4,7 +4,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::contents::convert::contents::ParseContentsError;
+use crate::parse::error::ParseContentsError;
 
 use super::puzzle_input::PuzzleInput;
 

@@ -9,9 +9,11 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = []
-wasm = ["wasm-bindgen", "wee_alloc"]
+wasm = ["serde", "serde-wasm-bindgen", "wasm-bindgen", "wee_alloc"]
 
 [dependencies]
+serde = { version = "1.0", features = ["derive"], optional = true}
+serde-wasm-bindgen = { version = "0.4", optional = true }
 wasm-bindgen = { version = "0.2.83", optional = true }
 wee_alloc = { version = "0.4.5", optional = true }
 

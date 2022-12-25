@@ -1,21 +1,18 @@
 mod sensor_reading;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
 };
 
 use self::sensor_reading::SensorReading;
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn beacon_exclusion_zone(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(readings) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<SensorReading>>>()?;
+    let ByLines(readings) = input.file_contents.parse::<ByLines<SensorReading>>()?;
     let scale = scale();
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => sensor_reading::get_covered_position_count(readings, scale),

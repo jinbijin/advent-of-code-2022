@@ -1,4 +1,26 @@
-use std::{str::FromStr, vec::IntoIter};
+use std::{
+    error::Error,
+    fmt::{self, Display, Formatter},
+    str::FromStr,
+    vec::IntoIter,
+};
+
+#[derive(Debug)]
+pub enum ParseRucksackError {
+    InvalidItem,
+    UnevenRucksack,
+}
+
+impl Display for ParseRucksackError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidItem => write!(f, "invalid item"),
+            Self::UnevenRucksack => write!(f, "uneven number of items in rucksack"),
+        }
+    }
+}
+
+impl Error for ParseRucksackError {}
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum RucksackItem {
@@ -58,7 +80,7 @@ impl Rucksack {
 }
 
 impl FromStr for Rucksack {
-    type Err = String;
+    type Err = ParseRucksackError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let contents = s
@@ -67,13 +89,13 @@ impl FromStr for Rucksack {
                 if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') {
                     Ok(RucksackItem::Item(c))
                 } else {
-                    Err(String::from("Invalid char."))
+                    Err(Self::Err::InvalidItem)
                 }
             })
             .collect::<Result<Vec<RucksackItem>, Self::Err>>()?;
         let count = contents.len();
         if count % 2 != 0 {
-            return Err(format!("Rucksack does not contain even amount of items!"));
+            return Err(Self::Err::UnevenRucksack);
         }
         let first_compartment_size = count / 2;
         Ok(Self {

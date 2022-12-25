@@ -1,22 +1,19 @@
 mod signal_change;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use self::signal_change::SignalChange;
 use crate::{
     common::vector_chunks::AsVectorChunks,
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::puzzle_input::PuzzleInput,
     input::puzzle_part::PuzzlePart,
+    parse::{error::ParseContentsError, lines::ByLines},
 };
+
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn cathode_ray_tube(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(signal_changes) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<SignalChange>>>()?;
+    let ByLines(signal_changes) = input.file_contents.parse::<ByLines<SignalChange>>()?;
     let signal_strengths = signal_changes
         .into_iter()
         .flat_map(|c| c.get_value_changes("x").into_iter())

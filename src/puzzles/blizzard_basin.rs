@@ -1,21 +1,18 @@
 mod basin_state;
 mod basin_tile;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::error::ParseContentsError,
     puzzles::blizzard_basin::basin_state::BasinState,
 };
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn blizzard_basin(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(mut basin_state) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<BasinState>>()?;
+    let mut basin_state = input.file_contents.parse::<BasinState>()?;
     let target_trip_count = match input.puzzle_part {
         PuzzlePart::Part1 => 1,
         PuzzlePart::Part2 => 3,

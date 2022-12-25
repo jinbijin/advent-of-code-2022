@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{common::position::Position, contents::grid::Grid};
+use crate::{common::position::Position, parse::grid::Grid};
 
 use super::{crate_cell::CrateCell, move_instruction::MoveInstruction};
 

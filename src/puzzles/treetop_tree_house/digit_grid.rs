@@ -1,6 +1,6 @@
 use std::cmp::min;
 
-use crate::{common::position::Position, contents::grid::Grid};
+use crate::{common::position::Position, parse::grid::Grid};
 
 pub enum DirectionFrom {
     Top,

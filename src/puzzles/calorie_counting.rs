@@ -1,29 +1,41 @@
+use crate::{
+    common::collection::max_items::AsMaxItems,
+    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines, sections::BySections},
+};
+
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::{
-    contents::convert::contents::ParseContentsError,
-    input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
-    parse::{lines::ByLines, sections::BySections},
-};
+#[cfg(feature = "wasm")]
+use crate::parse::native::Native;
+
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
+pub fn calorie_counting_validate(input: JsValue) -> JsValue {
+    let input: String = serde_wasm_bindgen::from_value(input).unwrap();
+    let result = match input.parse::<BySections<ByLines<Native<u64>>>>() {
+        Ok(_) => None,
+        Err(error) => Some(error),
+    };
+    serde_wasm_bindgen::to_value(&result).unwrap()
+}
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn calorie_counting(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let BySections(calorie_counts) = input.file_contents.parse::<BySections<ByLines<i32>>>()?;
-    let mut calorie_sums = calorie_counts
-        .into_iter()
-        .map(|ByLines(group)| group.into_iter().sum())
-        .collect::<Vec<i32>>();
-
-    // PERF (N: #groups, K: top # needed)
-    // Current: N log N
-    // Optimal: N log K
-    calorie_sums.sort_by(|x, y| y.cmp(x));
+    let BySections(calorie_counts) = input.file_contents.parse::<BySections<ByLines<u64>>>()?;
     let count = match input.puzzle_part {
         PuzzlePart::Part1 => 1,
         PuzzlePart::Part2 => 3,
     };
-    let answer = calorie_sums.into_iter().take(count).sum::<i32>();
+
+    let answer = calorie_counts
+        .into_iter()
+        .map(|ByLines(group)| group.into_iter().sum::<u64>())
+        .max_items(count)
+        .into_iter()
+        .sum::<u64>();
+
     Ok(answer.to_string())
 }
 

@@ -6,16 +6,10 @@ mod travel_instruction;
 
 use std::collections::HashMap;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
     common::direction::Direction,
-    contents::convert::{
-        contents::{AsParseContents, ParseContentsError, SectionPair},
-        sections::SingleLine,
-    },
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, section_pair::SectionPair},
     puzzles::monkey_map::{
         crazy_map::{CrazyMap, TransverseCrazyMap},
         map_data::MapData,
@@ -25,12 +19,14 @@ use crate::{
 
 use self::edge::{Edge, GlueOrientation, Glueing};
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn monkey_map(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SectionPair(map_data, SingleLine(TravelInstructionSequence(travel_instructions))) = input
+    let SectionPair(map_data, TravelInstructionSequence(travel_instructions)) = input
         .file_contents
-        .as_str()
-        .parse_contents::<SectionPair<MapData, SingleLine<TravelInstructionSequence>>>()?;
+        .parse::<SectionPair<MapData, TravelInstructionSequence>>()?;
     let glueing = match input.puzzle_part {
         PuzzlePart::Part1 => create_opposite_glueing(),
         PuzzlePart::Part2 => create_cube_glueing(),

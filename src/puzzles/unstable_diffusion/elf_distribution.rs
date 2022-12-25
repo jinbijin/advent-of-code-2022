@@ -2,12 +2,10 @@ use std::{
     collections::HashSet,
     error::Error,
     fmt::{self, Display, Formatter},
+    str::FromStr,
 };
 
-use crate::{
-    common::position::Position,
-    contents::convert::sections::{CustomSectionError, FromLines},
-};
+use crate::{common::position::Position, parse::error::ParseContentsError};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParseElfDistributionError {
@@ -24,14 +22,18 @@ impl Display for ParseElfDistributionError {
 
 impl Error for ParseElfDistributionError {}
 
-impl CustomSectionError for ParseElfDistributionError {}
+impl From<ParseElfDistributionError> for ParseContentsError {
+    fn from(value: ParseElfDistributionError) -> Self {
+        ParseContentsError::new(value)
+    }
+}
 
 pub struct ElfDistribution(pub HashSet<Position<isize>>);
 
-impl FromLines for ElfDistribution {
+impl FromStr for ElfDistribution {
     type Err = ParseElfDistributionError;
 
-    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let elves = s
             .lines()
             .enumerate()

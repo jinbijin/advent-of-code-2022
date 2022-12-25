@@ -1,12 +1,13 @@
 mod snafu;
 
+use crate::{
+    input::puzzle_input::PuzzleInput,
+    parse::{error::ParseContentsError, lines::ByLines},
+    puzzles::full_of_hot_air::snafu::Snafu,
+};
+
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
-
-use crate::{
-    contents::convert::contents::ParseContentsError, input::puzzle_input::PuzzleInput,
-    parse::lines::ByLines, puzzles::full_of_hot_air::snafu::Snafu,
-};
 
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn full_of_hot_air(input: PuzzleInput) -> Result<String, ParseContentsError> {

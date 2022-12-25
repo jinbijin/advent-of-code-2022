@@ -5,19 +5,27 @@ mod strategy;
 
 use self::{scorable::Scorable, strategy::RpsStrategy};
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
 };
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+#[cfg(feature = "wasm")]
+#[wasm_bindgen]
+pub fn rock_paper_scissors_validate(input: JsValue) -> JsValue {
+    let input: String = serde_wasm_bindgen::from_value(input).unwrap();
+    let result = match input.parse::<ByLines<RpsStrategy>>() {
+        Ok(_) => None,
+        Err(error) => Some(error),
+    };
+    serde_wasm_bindgen::to_value(&result).unwrap()
+}
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn rock_paper_scissors(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(strategy) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<RpsStrategy>>>()?;
+    let ByLines(strategy) = input.file_contents.parse::<ByLines<RpsStrategy>>()?;
     let interpretation = match input.puzzle_part {
         PuzzlePart::Part1 => rps_match::match_with_target_as_type,
         PuzzlePart::Part2 => rps_match::match_with_target_as_result,

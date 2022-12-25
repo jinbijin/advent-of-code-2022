@@ -3,23 +3,20 @@ mod monkey;
 mod monkey_job;
 mod symphony;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
     puzzles::monkey_math::{cacophony::Cacophony, monkey_job::MonkeyJob},
 };
 
 use self::symphony::Symphony;
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn monkey_math(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(monkey_jobs) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<MonkeyJob>>>()?;
+    let ByLines(monkey_jobs) = input.file_contents.parse::<ByLines<MonkeyJob>>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => {
             let mut cacophony = Cacophony::new();

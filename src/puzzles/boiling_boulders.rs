@@ -1,22 +1,19 @@
 mod boulder_collection;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
     common::three_d::position3::Position3,
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
 };
 
 use self::boulder_collection::BoulderCollection;
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn boiling_boulders(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(positions) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<Position3<isize>>>>()?;
+    let ByLines(positions) = input.file_contents.parse::<ByLines<Position3<isize>>>()?;
     let boulder_collection: BoulderCollection = positions.into();
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => boulder_collection.face_count(),

@@ -6,12 +6,9 @@ mod target_valve;
 mod valve;
 mod valve_system;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
-    contents::convert::contents::{AsParseContents, ParseContentsError, SingleSection},
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, lines::ByLines},
 };
 
 use self::{
@@ -19,12 +16,12 @@ use self::{
     valve_system::ValveSystem,
 };
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn proboscidea_volcanium(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(valves) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Vec<Valve>>>()?;
+    let ByLines(valves) = input.file_contents.parse::<ByLines<Valve>>()?;
     let valve_system: ValveSystem = valves.into();
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => valve_system.solo_crawler().max().map_or(0, |x| x),

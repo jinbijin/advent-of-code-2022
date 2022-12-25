@@ -2,11 +2,12 @@ use std::{
     collections::HashSet,
     error::Error,
     fmt::{self, Display, Formatter},
+    str::FromStr,
 };
 
 use crate::{
     common::{direction::Direction, position::Position},
-    contents::convert::sections::{CustomSectionError, FromLines},
+    parse::error::ParseContentsError,
 };
 
 use super::basin_tile::{BasinTile, ParseBasinTileError};
@@ -32,7 +33,11 @@ impl Display for ParseBasinStateError {
 
 impl Error for ParseBasinStateError {}
 
-impl CustomSectionError for ParseBasinStateError {}
+impl From<ParseBasinStateError> for ParseContentsError {
+    fn from(value: ParseBasinStateError) -> Self {
+        ParseContentsError::new(value)
+    }
+}
 
 pub struct BlizzardState {
     direction: Direction,
@@ -48,10 +53,10 @@ pub struct BasinState {
     trip_count: usize,
 }
 
-impl FromLines for BasinState {
+impl FromStr for BasinState {
     type Err = ParseBasinStateError;
 
-    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut width: isize = 0;
         let mut height: isize = 0;
         let mut expedition: HashSet<Position<isize>> = HashSet::new();

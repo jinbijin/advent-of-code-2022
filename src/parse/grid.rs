@@ -6,7 +6,7 @@ use std::{
 
 use crate::common::position::Position;
 
-use super::convert::sections::{CustomSectionError, FromLines};
+use super::error::ParseContentsError;
 
 pub enum ParseGridError {
     EmptyGrid,
@@ -34,7 +34,11 @@ impl Debug for ParseGridError {
 
 impl Error for ParseGridError {}
 
-impl CustomSectionError for ParseGridError {}
+impl From<ParseGridError> for ParseContentsError {
+    fn from(value: ParseGridError) -> Self {
+        ParseContentsError::new(value)
+    }
+}
 
 pub struct Grid<const N: usize, const S: usize, T> {
     width: usize,
@@ -64,14 +68,14 @@ impl<const N: usize, const S: usize, T> Grid<N, S, T> {
     }
 }
 
-impl<const N: usize, const S: usize, T> FromLines for Grid<N, S, T>
+impl<const N: usize, const S: usize, T> FromStr for Grid<N, S, T>
 where
     T: FromStr,
     T::Err: Display,
 {
     type Err = ParseGridError;
 
-    fn from_lines(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lines = s.lines().collect::<Vec<&str>>();
         let height = lines.len();
 

@@ -1,25 +1,19 @@
 mod digit_grid;
 
-#[cfg(feature = "wasm")]
-use wasm_bindgen::prelude::*;
-
 use crate::{
     common::position::Position,
-    contents::{
-        convert::contents::{AsParseContents, ParseContentsError, SingleSection},
-        grid::Grid,
-    },
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
+    parse::{error::ParseContentsError, grid::Grid},
 };
 
 use self::digit_grid::TreetopGrid;
 
+#[cfg(feature = "wasm")]
+use wasm_bindgen::prelude::*;
+
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn treetop_tree_house(input: PuzzleInput) -> Result<String, ParseContentsError> {
-    let SingleSection(grid) = input
-        .file_contents
-        .as_str()
-        .parse_contents::<SingleSection<Grid<1, 0, usize>>>()?;
+    let grid = input.file_contents.parse::<Grid<1, 0, usize>>()?;
     let grid_positions = grid.positions().collect::<Vec<Position<usize>>>();
     let treetop_grid = TreetopGrid(grid);
     let answer = match input.puzzle_part {

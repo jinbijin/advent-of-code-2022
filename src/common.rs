@@ -1,3 +1,4 @@
+pub mod collection;
 pub mod direction;
 pub mod increment;
 pub mod interval;

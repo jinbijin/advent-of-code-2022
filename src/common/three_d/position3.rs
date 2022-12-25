@@ -5,7 +5,10 @@ use std::{
     str::FromStr,
 };
 
-use crate::common::increment::{Decrement, Increment};
+use crate::{
+    common::increment::{Decrement, Increment},
+    parse::error::ParseContentsError,
+};
 
 use super::direction3::{Direction3, Direction3Kind};
 
@@ -67,6 +70,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub enum ParsePosition3Error<T>
 where
     T: FromStr,
@@ -88,21 +92,21 @@ where
     }
 }
 
-impl<T> Debug for ParsePosition3Error<T>
-where
-    T: FromStr,
-    T::Err: Display,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        <Self as Display>::fmt(&self, f)
-    }
-}
-
 impl<T> Error for ParsePosition3Error<T>
 where
-    T: FromStr,
-    T::Err: Display,
+    T: FromStr + Debug,
+    T::Err: Error,
 {
+}
+
+impl<T> From<ParsePosition3Error<T>> for ParseContentsError
+where
+    T: FromStr + Debug,
+    T::Err: Error,
+{
+    fn from(value: ParsePosition3Error<T>) -> Self {
+        ParseContentsError::new(value)
+    }
 }
 
 impl<T> FromStr for Position3<T>
