@@ -1,5 +1,8 @@
 use super::sections::{AsParseSection, FromSection, ParseLineError, ParseSectionError};
-use crate::parse::sections::{AsSections, ParseBySectionsError};
+use crate::parse::{
+    lines::ParseByLinesError,
+    sections::{AsSections, ParseBySectionsError},
+};
 use std::{
     error::Error,
     fmt::{self, Debug, Display, Formatter},
@@ -90,6 +93,18 @@ where
     TError: Display,
 {
     fn from(error: ParseBySectionsError<TError>) -> Self {
+        ParseContentsError {
+            error_description: Some(error.to_string()),
+            section_errors: Vec::new(),
+        }
+    }
+}
+
+impl<TError> From<ParseByLinesError<TError>> for ParseContentsError
+where
+    TError: Display,
+{
+    fn from(error: ParseByLinesError<TError>) -> Self {
         ParseContentsError {
             error_description: Some(error.to_string()),
             section_errors: Vec::new(),
