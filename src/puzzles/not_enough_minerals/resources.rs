@@ -5,28 +5,12 @@ use std::{
 
 use super::resource_type::ResourceType;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash)]
 pub struct Resources {
     pub ore: usize,
     pub clay: usize,
     pub obsidian: usize,
     pub geode: usize,
-}
-
-fn time_until_affordable(current: usize, production: usize, cost: usize) -> Option<usize> {
-    if current >= cost {
-        Some(0)
-    } else if current < cost && production == 0 {
-        None
-    } else {
-        let div = (cost - current) / production;
-        let has_rem = ((cost - current) % production) != 0;
-        if has_rem {
-            Some(div + 1)
-        } else {
-            Some(div)
-        }
-    }
 }
 
 impl Resources {
@@ -37,28 +21,6 @@ impl Resources {
             obsidian,
             geode,
         }
-    }
-
-    pub fn time_until_affordable(&self, production: Resources, cost: Resources) -> Option<usize> {
-        let times_until_affordable = ResourceType::all()
-            .into_iter()
-            .filter_map(|resource_type| {
-                time_until_affordable(
-                    self.get(resource_type),
-                    production.get(resource_type),
-                    cost.get(resource_type),
-                )
-            })
-            .collect::<Vec<usize>>();
-        if times_until_affordable.len() < 4 {
-            None
-        } else {
-            times_until_affordable.into_iter().max()
-        }
-    }
-
-    pub fn geode_count(&self) -> usize {
-        self.geode
     }
 
     pub fn get(&self, resource_type: ResourceType) -> usize {
@@ -102,6 +64,8 @@ impl PartialEq for Resources {
         self.partial_cmp(other) == Some(Ordering::Equal)
     }
 }
+
+impl Eq for Resources {}
 
 impl PartialOrd for Resources {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

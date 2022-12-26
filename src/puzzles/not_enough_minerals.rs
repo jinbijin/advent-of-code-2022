@@ -1,6 +1,7 @@
 mod blueprint;
-mod collection_state;
-mod collector;
+mod factory;
+mod potential_production;
+mod potential_resources;
 mod resource_type;
 mod resources;
 
@@ -9,35 +10,23 @@ use crate::{
     parse::{error::ParseContentsError, lines::ByLines},
 };
 
-use self::{blueprint::Blueprint, collector::AsCollector};
+use self::{blueprint::Blueprint, factory::AsFactory};
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-// PERF: Instead of this depth-first approach, I should probably do a breadth-first search;
-// Storing results in a `HashMap<Resources, HashSet<Resources>>` (mapping from production levels to possible stored resource values leading to it)
-// in combination with the bounds on useful production should make iteration *really fast*.
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn not_enough_minerals(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let ByLines(blueprints) = input.file_contents.parse::<ByLines<Blueprint>>()?;
     let answer = match input.puzzle_part {
         PuzzlePart::Part1 => blueprints
             .into_iter()
-            .filter_map(|b| {
-                dbg!(b.id);
-                match b.collector(24).max() {
-                    Some(max) => Some(b.id * max),
-                    None => None,
-                }
-            })
+            .map(|b| b.id * b.factory().run(24))
             .sum::<usize>(),
         PuzzlePart::Part2 => blueprints
             .into_iter()
             .take(take_count())
-            .filter_map(|b| {
-                dbg!(b.id);
-                b.collector(32).max()
-            })
+            .map(|b| b.factory().run(32))
             .product::<usize>(),
     };
     Ok(answer.to_string())

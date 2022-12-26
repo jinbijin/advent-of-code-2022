@@ -27,7 +27,7 @@ impl Display for ParseRpsTypeError {
 
 impl Error for ParseRpsTypeError {}
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum RpsType {
     Rock,
     Paper,

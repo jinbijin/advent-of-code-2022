@@ -1,9 +1,12 @@
-mod mapping;
 mod rps_match;
 mod scorable;
 mod strategy;
 
-use self::{scorable::Scorable, strategy::RpsStrategy};
+use self::{
+    rps_match::{RpsMatch, RpsTargetMap},
+    scorable::Scorable,
+    strategy::RpsStrategy,
+};
 use crate::{
     input::{puzzle_input::PuzzleInput, puzzle_part::PuzzlePart},
     parse::{error::ParseContentsError, lines::ByLines},
@@ -26,9 +29,10 @@ pub fn rock_paper_scissors_validate(input: JsValue) -> JsValue {
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn rock_paper_scissors(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let ByLines(strategy) = input.file_contents.parse::<ByLines<RpsStrategy>>()?;
-    let interpretation = match input.puzzle_part {
-        PuzzlePart::Part1 => rps_match::match_with_target_as_type,
-        PuzzlePart::Part2 => rps_match::match_with_target_as_result,
+    let rps_target_map = RpsTargetMap::new();
+    let interpretation: Box<dyn Fn(RpsStrategy) -> RpsMatch> = match input.puzzle_part {
+        PuzzlePart::Part1 => Box::new(|strategy| rps_target_map.map_target_as_type(strategy)),
+        PuzzlePart::Part2 => Box::new(|strategy| rps_target_map.map_target_as_result(strategy)),
     };
     let answer = strategy
         .into_iter()

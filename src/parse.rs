@@ -1,3 +1,4 @@
+pub mod chars;
 pub mod error;
 pub mod grid;
 pub mod lines;
