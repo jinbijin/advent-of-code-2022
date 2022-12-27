@@ -1,5 +1,6 @@
 use std::{
     cmp,
+    collections::HashSet,
     error::Error,
     fmt::{self, Debug, Display, Formatter},
     str::FromStr,
@@ -39,6 +40,7 @@ impl Debug for ParseRockRangeChainError {
 
 impl Error for ParseRockRangeChainError {}
 
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct RangeIncl {
     pub start: usize,
     pub end: usize,
@@ -50,13 +52,14 @@ impl RangeIncl {
     }
 }
 
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum RockRange {
     Horizontal { x: RangeIncl, y: usize },
     Vertical { x: usize, y: RangeIncl },
 }
 
 impl RockRange {
-    fn bottom(&self) -> usize {
+    pub fn bottom(&self) -> usize {
         match self {
             Self::Horizontal { x: _, y } => *y,
             Self::Vertical {
@@ -136,7 +139,7 @@ impl FromStr for RockRangeChain {
 
 pub struct RockRangesWithAbyss {
     depth: usize,
-    rock_ranges: Vec<RockRange>,
+    rock_ranges: HashSet<RockRange>,
     grains_of_sand: Vec<Position>,
 }
 
@@ -182,7 +185,7 @@ impl From<Vec<RockRangeChain>> for RockRangesWithAbyss {
         let rock_ranges = chains
             .into_iter()
             .flat_map(|RockRangeChain(rock_ranges)| rock_ranges)
-            .collect::<Vec<RockRange>>();
+            .collect::<HashSet<RockRange>>();
         let depth = rock_ranges
             .iter()
             .map(|rock_range| rock_range.bottom())
@@ -213,87 +216,5 @@ impl Iterator for RockRangesWithAbyss {
         } else {
             None
         }
-    }
-}
-
-pub struct RockRangesWithFloor {
-    floor_depth: usize,
-    rock_ranges: Vec<RockRange>,
-    grains_of_sand: Vec<Position>,
-}
-
-impl RockRangesWithFloor {
-    fn drop(&self, position: Position) -> Option<Position> {
-        let Position { x, y } = position;
-
-        let direct_down = Position { x, y: y + 1 };
-        if !self.occupies(direct_down) {
-            return Some(direct_down);
-        }
-
-        let down_left = Position { x: x - 1, y: y + 1 };
-        if !self.occupies(down_left) {
-            return Some(down_left);
-        }
-
-        let down_right = Position { x: x + 1, y: y + 1 };
-        if !self.occupies(down_right) {
-            return Some(down_right);
-        }
-
-        None
-    }
-
-    fn occupies(&self, position: Position) -> bool {
-        position.y == self.floor_depth
-            || self
-                .rock_ranges
-                .iter()
-                .any(|rock_range| rock_range.occupies(position))
-            || self
-                .grains_of_sand
-                .iter()
-                .any(|grain_of_sand| *grain_of_sand == position)
-    }
-}
-
-impl From<Vec<RockRangeChain>> for RockRangesWithFloor {
-    fn from(chains: Vec<RockRangeChain>) -> Self {
-        let rock_ranges = chains
-            .into_iter()
-            .flat_map(|RockRangeChain(rock_ranges)| rock_ranges)
-            .collect::<Vec<RockRange>>();
-        let depth = rock_ranges
-            .iter()
-            .map(|rock_range| rock_range.bottom())
-            .max()
-            .map_or(0, |x| x);
-        let floor_depth = depth + 2;
-        RockRangesWithFloor {
-            floor_depth,
-            rock_ranges,
-            grains_of_sand: Vec::new(),
-        }
-    }
-}
-
-impl Iterator for RockRangesWithFloor {
-    type Item = Position;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let starting_position = Position { x: 500, y: 0 };
-        if self.occupies(starting_position) {
-            return None;
-        }
-
-        let mut previous = starting_position;
-        let mut maybe_current = self.drop(previous);
-        while let Some(current) = maybe_current {
-            previous = current;
-            maybe_current = self.drop(previous);
-        }
-
-        self.grains_of_sand.push(previous);
-        Some(previous)
     }
 }

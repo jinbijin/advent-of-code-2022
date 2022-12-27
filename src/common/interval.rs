@@ -1,8 +1,16 @@
-use std::{cmp, collections::HashSet, fmt::Debug, hash::Hash, iter::Sum, ops::Sub};
+use std::{
+    cmp,
+    collections::HashSet,
+    fmt::Debug,
+    hash::Hash,
+    iter::Sum,
+    ops::{Add, Sub},
+};
 
+#[derive(Debug)]
 pub enum BuildIntervalError<T>
 where
-    T: Debug + Copy + Ord + Hash + Sub<T, Output = T> + Sum,
+    T: Debug + Copy + Ord + Hash + Add<T, Output = T> + Sub<T, Output = T> + Sum,
 {
     EndBeforeStart { start: T, end: T },
 }
@@ -11,7 +19,7 @@ where
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Interval<T>
 where
-    T: Debug + Copy + Hash + Ord + Sub<T, Output = T> + Sum,
+    T: Debug + Copy + Hash + Ord + Add<T, Output = T> + Sub<T, Output = T> + Sum,
 {
     start: T,
     end: T,
@@ -19,7 +27,7 @@ where
 
 impl<T> Interval<T>
 where
-    T: Debug + Copy + Hash + Ord + Sub<T, Output = T> + Sum,
+    T: Debug + Copy + Hash + Ord + Add<T, Output = T> + Sub<T, Output = T> + Sum,
 {
     pub fn build(start: T, end: T) -> Result<Self, BuildIntervalError<T>> {
         if end < start {
@@ -60,14 +68,28 @@ where
 #[derive(Debug, Clone)]
 pub struct IntervalUnion<T>(pub HashSet<Interval<T>>)
 where
-    T: Debug + Copy + Hash + Ord + Sub<T, Output = T> + Sum;
+    T: Debug + Copy + Hash + Ord + Add<T, Output = T> + Sub<T, Output = T> + Sum;
 
 impl<T> IntervalUnion<T>
 where
-    T: Debug + Copy + Hash + Ord + Sub<T, Output = T> + Sum,
+    T: Debug + Copy + Hash + Ord + Add<T, Output = T> + Sub<T, Output = T> + Sum,
 {
     pub fn new() -> IntervalUnion<T> {
         IntervalUnion(HashSet::new())
+    }
+
+    pub fn expand(&self, by: T) -> IntervalUnion<T> {
+        let IntervalUnion(set) = self;
+        let mut new_interval_union: IntervalUnion<T> = IntervalUnion::new();
+
+        for interval in set.iter() {
+            new_interval_union.add(&Interval {
+                start: interval.start - by,
+                end: interval.end + by,
+            })
+        }
+
+        new_interval_union
     }
 
     pub fn add(&mut self, interval: &Interval<T>) {
@@ -93,6 +115,43 @@ where
             }
         } else {
             set.insert(*interval);
+        }
+    }
+
+    pub fn remove(&mut self, other: &IntervalUnion<T>) {
+        let IntervalUnion(other) = other;
+        for interval in other {
+            self.remove_interval(interval);
+        }
+    }
+
+    fn remove_interval(&mut self, interval: &Interval<T>) {
+        let IntervalUnion(set) = self;
+        let overlapping = set
+            .iter()
+            .filter(|x| interval.overlap(**x).is_some())
+            .map(|x| *x)
+            .collect::<Vec<Interval<T>>>();
+
+        let mut trimmed: Vec<Interval<T>> = Vec::new();
+        for x in overlapping.iter() {
+            if x.start < interval.start {
+                trimmed.push(Interval {
+                    start: x.start,
+                    end: interval.start,
+                });
+            }
+            if x.end > interval.end {
+                trimmed.push(Interval {
+                    start: interval.end,
+                    end: x.end,
+                });
+            }
+            set.remove(x);
+        }
+
+        for new_interval in trimmed {
+            set.insert(new_interval);
         }
     }
 

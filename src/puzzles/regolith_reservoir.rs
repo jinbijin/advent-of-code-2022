@@ -1,3 +1,4 @@
+mod cave_in;
 mod rock_range;
 
 use crate::{
@@ -5,15 +6,14 @@ use crate::{
     parse::{error::ParseContentsError, lines::ByLines},
 };
 
-use self::rock_range::{RockRangeChain, RockRangesWithAbyss, RockRangesWithFloor};
+use self::{
+    cave_in::{AsIntoFloor, CaveIn},
+    rock_range::{RockRangeChain, RockRangesWithAbyss},
+};
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-// PERF
-// We currently run the entire simulation in the most naive way possible, which is kinda slow.
-// (To note, I needed a release build for this to run in decent time for part 2, which still is basically a minute.)
-// But it is also possible to compute in one pass the sand-covered range; that should be optimal.
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn regolith_reservoir(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let ByLines(rock_range_chains) = input.file_contents.parse::<ByLines<RockRangeChain>>()?;
@@ -23,8 +23,8 @@ pub fn regolith_reservoir(input: PuzzleInput) -> Result<String, ParseContentsErr
             rock_ranges_with_abyss.count()
         }
         PuzzlePart::Part2 => {
-            let rock_ranges_with_floor: RockRangesWithFloor = rock_range_chains.into();
-            rock_ranges_with_floor.count()
+            let cave_in: CaveIn = rock_range_chains.into();
+            cave_in.into_floor().fill_with_sand()
         }
     };
     Ok(answer.to_string())
