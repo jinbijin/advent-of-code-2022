@@ -27,7 +27,7 @@ impl Debug for ParseStartingItemsError {
 
 impl Error for ParseStartingItemsError {}
 
-pub struct StartingItems(pub Vec<usize>);
+pub struct StartingItems(pub Vec<u64>);
 
 impl FromStr for StartingItems {
     type Err = ParseStartingItemsError;
@@ -37,8 +37,8 @@ impl FromStr for StartingItems {
         if s.starts_with(prefix) {
             let items = s[(prefix.len())..]
                 .split(", ")
-                .map(|item| item.parse::<usize>())
-                .collect::<Result<Vec<usize>, ParseIntError>>()
+                .map(|item| item.parse::<u64>())
+                .collect::<Result<Vec<u64>, ParseIntError>>()
                 .map_err(|_| Self::Err::InvalidItem(s.to_string()))?;
             Ok(StartingItems(items))
         } else {

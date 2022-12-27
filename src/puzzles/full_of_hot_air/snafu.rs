@@ -21,13 +21,13 @@ impl Display for ParseSnafuError {
 
 impl Error for ParseSnafuError {}
 
-pub struct Snafu(pub isize);
+pub struct Snafu(pub i64);
 
 impl FromStr for Snafu {
     type Err = ParseSnafuError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut parsed_value: isize = 0;
+        let mut parsed_value: i64 = 0;
 
         for c in s.chars() {
             parsed_value *= 5;
@@ -73,8 +73,8 @@ impl Display for Snafu {
     }
 }
 
-impl From<isize> for Snafu {
-    fn from(value: isize) -> Self {
+impl From<i64> for Snafu {
+    fn from(value: i64) -> Self {
         Snafu(value)
     }
 }

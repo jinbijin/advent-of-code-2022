@@ -10,6 +10,10 @@ use crate::{
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+// PERF
+// Part 2 is just barely outside of 15s.
+// TARGET
+// Part 2: < 15s (is 16s)
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn unstable_diffusion(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let elf_distribution = input.file_contents.parse::<ElfDistribution>()?;

@@ -10,6 +10,9 @@ use self::elevation_grid::{ElevationGrid, ElevationGridTransversalResult, Transv
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+// TODO
+// wasm version behaves in a weird way:
+// runtime increases linearly with consecutive run count?
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn hill_climbing_algorithm(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let transversal_mode = match input.puzzle_part {

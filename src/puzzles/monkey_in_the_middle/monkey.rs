@@ -126,37 +126,37 @@ impl From<ParseIfFalseThrowToError> for ParseMonkeyError {
 }
 
 pub struct MonkeyItem {
-    worry_level: usize,
+    worry_level: u64,
 }
 
 impl MonkeyItem {
-    fn inspect(&mut self, operation: &Box<dyn Fn(usize) -> usize>) {
+    fn inspect(&mut self, operation: &Box<dyn Fn(u64) -> u64>) {
         self.worry_level = operation(self.worry_level);
     }
 
-    fn release(&mut self, reduce_by: Option<usize>) {
+    fn release(&mut self, reduce_by: Option<u64>) {
         match reduce_by {
             Some(reduce_by) => self.worry_level %= reduce_by,
             None => self.worry_level /= 3,
         };
     }
 
-    fn test(&self, divisor: usize) -> bool {
+    fn test(&self, divisor: u64) -> bool {
         self.worry_level % divisor == 0
     }
 }
 
 pub struct Monkey {
     items: VecDeque<MonkeyItem>,
-    operation: Box<dyn Fn(usize) -> usize>,
-    divisor: usize,
+    operation: Box<dyn Fn(u64) -> u64>,
+    divisor: u64,
     throw_to_if_true: String,
     throw_to_if_false: String,
-    items_thrown: usize,
+    items_thrown: u64,
 }
 
 impl Monkey {
-    fn inspect_throw(&mut self, item: &mut MonkeyItem, reduce_by: Option<usize>) -> String {
+    fn inspect_throw(&mut self, item: &mut MonkeyItem, reduce_by: Option<u64>) -> String {
         self.items_thrown += 1;
         item.inspect(&self.operation);
         item.release(reduce_by);
@@ -262,7 +262,7 @@ impl MonkeyCollection {
         let reduce_by = if relieved_after_inspection {
             None
         } else {
-            Some(self.get_divisors().iter().product::<usize>())
+            Some(self.get_divisors().iter().product::<u64>())
         };
         let keys = self.monkey_keys.clone();
         for key in keys.iter() {
@@ -270,28 +270,28 @@ impl MonkeyCollection {
         }
     }
 
-    pub fn get_sorted_throw_counts(&self) -> Vec<usize> {
+    pub fn get_sorted_throw_counts(&self) -> Vec<u64> {
         let mut throw_counts = self
             .monkeys
             .values()
             .map(|monkey| monkey.items_thrown)
-            .collect::<Vec<usize>>();
+            .collect::<Vec<u64>>();
         throw_counts.sort_by(|a, b| b.cmp(a));
         throw_counts
     }
 
-    fn get_divisors(&self) -> Vec<usize> {
+    fn get_divisors(&self) -> Vec<u64> {
         self.monkeys
             .values()
             .map(|monkey| monkey.divisor)
-            .collect::<Vec<usize>>()
+            .collect::<Vec<u64>>()
     }
 
-    fn inspect_throw_all(&mut self, key: &String, reduce_by: Option<usize>) {
+    fn inspect_throw_all(&mut self, key: &String, reduce_by: Option<u64>) {
         while let Some(()) = self.inspect_throw_item(key, reduce_by) {}
     }
 
-    fn inspect_throw_item(&mut self, key: &String, reduce_by: Option<usize>) -> Option<()> {
+    fn inspect_throw_item(&mut self, key: &String, reduce_by: Option<u64>) -> Option<()> {
         if let Some(monkey) = self.monkeys.get_mut(key) {
             if let Some(mut item) = monkey.items.pop_front() {
                 let target = monkey.inspect_throw(&mut item, reduce_by);

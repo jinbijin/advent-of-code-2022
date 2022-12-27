@@ -11,6 +11,12 @@ use self::boulder_collection::BoulderCollection;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+// PERF
+// Part 2 face traversal is slow, apparently.
+// Probably because adjacency currently is expensive.
+// Try generating graph during collection.
+// TARGET
+// Part 2: < 100ms (is 45s; Part 1 is ~50ms)
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn boiling_boulders(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let ByLines(positions) = input.file_contents.parse::<ByLines<Position3<isize>>>()?;

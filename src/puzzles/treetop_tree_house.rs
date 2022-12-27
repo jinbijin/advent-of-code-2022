@@ -11,6 +11,12 @@ use self::digit_grid::TreetopGrid;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+// PERF
+// Part 1 can be done with 4 scans of the grid, instead of recomputing each visibility each time.
+// Part 2 can probably done more efficiently as well, checking by line / column for a part of the scenic score.
+// TARGET
+// Part 1: ~1 ms (is ~6 ms)
+// Part 2: ~1 ms (?, is ~6 ms)
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn treetop_tree_house(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let grid = input.file_contents.parse::<Grid<1, 0, usize>>()?;

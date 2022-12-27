@@ -26,11 +26,11 @@ impl Error for ParseArgumentError {}
 
 enum Argument {
     Parameter,
-    Constant(usize),
+    Constant(u64),
 }
 
 impl Argument {
-    fn as_fn(&self) -> Box<dyn Fn(usize) -> usize> {
+    fn as_fn(&self) -> Box<dyn Fn(u64) -> u64> {
         match self {
             Self::Parameter => Box::new(|x| x),
             Self::Constant(value) => {
@@ -47,7 +47,7 @@ impl FromStr for Argument {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s == "old" {
             Ok(Self::Parameter)
-        } else if let Ok(constant) = s.parse::<usize>() {
+        } else if let Ok(constant) = s.parse::<u64>() {
             Ok(Self::Constant(constant))
         } else {
             Err(Self::Err::InvalidValue(s.to_string()))
@@ -81,7 +81,7 @@ enum OperationKind {
 }
 
 impl OperationKind {
-    fn as_fn(&self) -> Box<dyn Fn(usize, usize) -> usize> {
+    fn as_fn(&self) -> Box<dyn Fn(u64, u64) -> u64> {
         match self {
             Self::Plus => Box::new(|x, y| x + y),
             Self::Times => Box::new(|x, y| x * y),
@@ -132,7 +132,7 @@ pub struct Operation {
 }
 
 impl Operation {
-    pub fn as_fn(&self) -> Box<dyn Fn(usize) -> usize> {
+    pub fn as_fn(&self) -> Box<dyn Fn(u64) -> u64> {
         let lhs = self.lhs.as_fn();
         let op = self.op.as_fn();
         let rhs = self.rhs.as_fn();

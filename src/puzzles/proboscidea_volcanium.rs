@@ -19,6 +19,10 @@ use self::{
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
+// PERF
+// Maybe find a less brute-forcy way to do this?
+// TARGET
+// Part 2: < 15 s (is ~8 minutes)
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn proboscidea_volcanium(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let ByLines(valves) = input.file_contents.parse::<ByLines<Valve>>()?;

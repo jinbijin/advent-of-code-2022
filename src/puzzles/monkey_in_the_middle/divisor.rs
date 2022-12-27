@@ -24,7 +24,7 @@ impl Debug for ParseDivisorError {
 
 impl Error for ParseDivisorError {}
 
-pub struct Divisor(pub usize);
+pub struct Divisor(pub u64);
 
 impl FromStr for Divisor {
     type Err = ParseDivisorError;
@@ -32,7 +32,7 @@ impl FromStr for Divisor {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let prefix = "  Test: divisible by ";
         if s.starts_with(prefix) {
-            match s[(prefix.len())..].parse::<usize>() {
+            match s[(prefix.len())..].parse::<u64>() {
                 Ok(value) => Ok(Divisor(value)),
                 Err(_) => Err(Self::Err::InvalidFormat(s.to_string())),
             }
