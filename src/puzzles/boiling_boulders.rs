@@ -16,7 +16,7 @@ use wasm_bindgen::prelude::*;
 // Probably because adjacency currently is expensive.
 // Try generating graph during collection.
 // TARGET
-// Part 2: < 100ms (is 45s; Part 1 is ~50ms)
+// Part 2: < 100ms (is 30s; Part 1 is ~50ms)
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn boiling_boulders(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let ByLines(positions) = input.file_contents.parse::<ByLines<Position3<isize>>>()?;

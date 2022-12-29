@@ -14,7 +14,7 @@ use wasm_bindgen::prelude::*;
 // For part 2, if I really want to, I could take a polygon-based approach to find the coordinates,
 // instead of scanning all 4000000 lines.
 // TARGET
-// Part 2: ~1 ms (is ~20 s)
+// Part 2: ~1 ms (is ~6 s)
 #[cfg_attr(feature = "wasm", wasm_bindgen)]
 pub fn beacon_exclusion_zone(input: PuzzleInput) -> Result<String, ParseContentsError> {
     let ByLines(readings) = input.file_contents.parse::<ByLines<SensorReading>>()?;
